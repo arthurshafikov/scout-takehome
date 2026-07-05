@@ -1,6 +1,6 @@
 import { FC } from 'react'
-import { PEST_CLASSES, PEST_CLASS_LABELS } from '@/types/api'
-import { PEST_CLASS_COLORS } from '@/utils/classColors'
+import { PEST_CLASSES } from '@/types/api'
+import { PEST_CLASS_COLORS, PEST_CLASS_LABELS } from '@/utils/classColors'
 
 /**
  * Legend showing pest class colors and labels

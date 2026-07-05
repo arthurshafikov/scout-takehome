@@ -42,7 +42,7 @@ export const apiSlice = createApi({
      */
     getPhoto: builder.query<Photo, string>({
       query: (id) => `/photos/${id}`,
-      providesTags: (result, _, id) => [{ type: 'Photo', id }],
+      providesTags: (_, __, id) => [{ type: 'Photo', id }],
     }),
 
     /**

@@ -34,7 +34,7 @@ const BBoxOverlay: FC<BBoxOverlayProps> = ({
           imageWidth,
           imageHeight,
         )
-        const [r, g, b] = PEST_CLASS_RGB[prediction.classId]
+        const [r, g, b] = PEST_CLASS_RGB[prediction.classId as keyof typeof PEST_CLASS_RGB]
         const color = `rgba(${r}, ${g}, ${b}, ${opacity})`
         const borderColor = `rgb(${r}, ${g}, ${b})`
 
@@ -75,7 +75,7 @@ const BBoxOverlay: FC<BBoxOverlayProps> = ({
               fontWeight="bold"
               fontFamily="sans-serif"
             >
-              {PEST_CLASS_LABELS[prediction.classId]} (
+              {PEST_CLASS_LABELS[prediction.classId as keyof typeof PEST_CLASS_LABELS]} (
               {(prediction.confidence * 100).toFixed(0)}%)
             </text>
           </g>

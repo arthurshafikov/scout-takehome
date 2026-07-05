@@ -108,11 +108,11 @@ const PhotoModal: FC<PhotoModalProps> = ({ photo, isOpen, onClose }) => {
                   {sortedPredictions.map((pred) => (
                     <div
                       key={pred.id}
-                      className={`p-3 rounded border-2 ${PEST_CLASS_COLORS[pred.classId]} border-opacity-50`}
+                      className={`p-3 rounded border-2 ${PEST_CLASS_COLORS[pred.classId as keyof typeof PEST_CLASS_COLORS]} border-opacity-50`}
                     >
                       <div className="flex justify-between items-start mb-1">
                         <div className="font-semibold text-gray-900">
-                          {PEST_CLASS_LABELS[pred.classId]}
+                          {PEST_CLASS_LABELS[pred.classId as keyof typeof PEST_CLASS_LABELS]}
                         </div>
                         <div className="text-sm font-bold text-gray-700">
                           {(pred.confidence * 100).toFixed(1)}%

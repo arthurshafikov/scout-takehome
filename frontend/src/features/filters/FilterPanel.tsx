@@ -5,7 +5,8 @@ import {
   setMinConfidence,
   resetFilters,
 } from '@/features/filters/filtersSlice'
-import { PEST_CLASSES, PEST_CLASS_LABELS } from '@/types/api'
+import { PEST_CLASSES } from '@/types/api'
+import { PEST_CLASS_LABELS } from '@/utils/classColors'
 
 /**
  * Filter panel with pest class selector and confidence slider

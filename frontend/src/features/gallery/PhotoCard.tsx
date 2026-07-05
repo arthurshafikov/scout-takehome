@@ -43,7 +43,7 @@ const PhotoCard: FC<PhotoCardProps> = ({ photo, onClick }) => {
         {topPrediction && (
           <div className="absolute bottom-2 left-2 bg-white bg-opacity-90 rounded px-2 py-1 text-xs">
             <div className="font-semibold text-gray-900">
-              {PEST_CLASS_LABELS[topPrediction.classId]}
+              {PEST_CLASS_LABELS[topPrediction.classId as keyof typeof PEST_CLASS_LABELS]}
             </div>
             <div className="text-gray-600">
               {(topPrediction.confidence * 100).toFixed(0)}%

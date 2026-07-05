@@ -1,4 +1,4 @@
-import type { PestClass, PEST_CLASSES } from '@/types/api'
+import type { PestClass } from '@/types/api'
 
 /**
  * Tailwind color classes for each pest class

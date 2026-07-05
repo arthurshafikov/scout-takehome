@@ -1,5 +1,6 @@
 import { FC, useRef, useState } from 'react'
 import { Stage, Layer, Circle, Text, Rect, Line } from 'react-konva'
+import type Konva from 'konva'
 import { useListPhotosQuery } from '@/services/api'
 import { PEST_CLASS_RGB, PEST_CLASS_LABELS } from '@/utils/classColors'
 import type { Photo, Prediction } from '@/types/api'
@@ -145,7 +146,7 @@ const MapPanel: FC = () => {
             {photos.map((photo) => {
               const topPred = getTopPrediction(photo)
               const color = topPred
-                ? PEST_CLASS_RGB[topPred.classId]
+                ? PEST_CLASS_RGB[topPred.classId as keyof typeof PEST_CLASS_RGB]
                 : [128, 128, 128]
               const isHovered = hoveredPhoto?.id === photo.id
 
@@ -188,7 +189,7 @@ const MapPanel: FC = () => {
                   .slice(0, 3)
                   .map((pred) => (
                     <div key={pred.id} className="text-gray-600">
-                      • {PEST_CLASS_LABELS[pred.classId]}: {(pred.confidence * 100).toFixed(0)}%
+                      • {PEST_CLASS_LABELS[pred.classId as keyof typeof PEST_CLASS_LABELS]}: {(pred.confidence * 100).toFixed(0)}%
                     </div>
                   ))}
               </div>

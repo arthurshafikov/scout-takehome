@@ -27,9 +27,6 @@ RUN apk add --no-cache tzdata
 ENV BIN_FILE /go/src/app
 COPY --from=build ${BIN_FILE} ${BIN_FILE}
 
-ENV ENV_FILE /go/src/main.env
-COPY --from=build ${ENV_FILE} ${ENV_FILE}
-
 ENV CONFIGS_FOLDER /go/src/configs
 COPY --from=build ${CONFIGS_FOLDER} ${CONFIGS_FOLDER}
 

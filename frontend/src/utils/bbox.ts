@@ -1,4 +1,4 @@
-import type { BoundingBox, PestClass } from '@/types/api'
+import type { BoundingBox } from '@/types/api'
 
 /**
  * Transform normalized BBox [0,1] to pixel coordinates
