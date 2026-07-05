@@ -2,8 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 
 	"github.com/arthurshafikov/scout-takehome/backend/internal/services"
 	"github.com/gin-gonic/gin"
@@ -25,18 +23,12 @@ func NewHandler(
 }
 
 func (h *Handler) Init(e *gin.Engine) {
-	h.initTestRoutes(e)
+	// TODO: Add photo endpoints
+	h.initHealthCheck(e)
 }
 
-func (h *Handler) parseIntegerFromParam(ctx *gin.Context, key string) (int, error) {
-	param := ctx.Param(key)
-	if param == "" {
-		return 0, fmt.Errorf("the param %s is missing", key)
-	}
-	paramInt, err := strconv.Atoi(param)
-	if err != nil {
-		return 0, err
-	}
-
-	return paramInt, err
+func (h *Handler) initHealthCheck(e *gin.Engine) {
+	e.GET("/healthz", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
 }

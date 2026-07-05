@@ -2,17 +2,18 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	_ "modernc.org/sqlite"
+
 	configPkg "github.com/arthurshafikov/scout-takehome/backend/internal/config"
-	"github.com/arthurshafikov/scout-takehome/backend/internal/events"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/repository"
-	"github.com/arthurshafikov/scout-takehome/backend/internal/repository/pgsql"
-	"github.com/arthurshafikov/scout-takehome/backend/internal/scheduler"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/services"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/transport/http"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/transport/http/handler"
@@ -41,11 +42,16 @@ func Run() {
 
 	config := configPkg.NewConfig(envFolderPath, configFolderPath)
 	logger := logrus.New()
-	logrus.SetLevel(logrus.DebugLevel)
 	logger.SetReportCaller(true)
 	logger.SetOutput(os.Stdout)
-	logger.SetLevel(logrus.DebugLevel)
-	logger.Info("Starting the app...")
+
+	if config.App.Debug {
+		logger.SetLevel(logrus.DebugLevel)
+	} else {
+		logger.SetLevel(logrus.InfoLevel)
+	}
+
+	logger.Info("Starting Scout backend...")
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -53,46 +59,35 @@ func Run() {
 		}
 	}()
 
-	eventsHandler := events.NewHandler(ctx, g, logger, config.App.MaxEventHandlerGoroutines)
-
-	db := pgsql.ConnectToDatabase(ctx, &config.DBConfig, config.App.Debug)
-	repository := repository.NewRepository(db)
-
-	services := services.NewServices(services.Deps{
-		Repository:    repository,
-		Logger:        logger,
-		Config:        config,
-		EventsHandler: eventsHandler,
-	})
-
-	eventsHandler.InitEvents(&events.Deps{
-		Services: services,
-		Config:   config,
-	})
-
-	scheduler, err := scheduler.NewScheduler(ctx, scheduler.Deps{
-		Logger:   logger,
-		Services: services,
-		Config:   config,
-	})
+	// Connect to SQLite
+	db, err := sql.Open("sqlite", fmt.Sprintf("file:%s?mode=ro&_journal_mode=WAL", config.SQLiteConfig.DBPath))
 	if err != nil {
-		logger.Error(err)
+		logger.Fatalf("Failed to open SQLite database: %v", err)
 
 		return
 	}
-	g.Go(func() error {
-		defer func() {
-			if err := recover(); err != nil {
-				logger.Panic(err)
-			}
-		}()
 
-		return scheduler.Start()
+	defer db.Close()
+
+	if err := db.PingContext(ctx); err != nil {
+		logger.Fatalf("Failed to connect to SQLite database: %v", err)
+
+		return
+	}
+
+	logger.Info("Connected to SQLite database")
+
+	repo := repository.NewRepository(db)
+
+	svc := services.NewServices(services.Deps{
+		Repository: repo,
+		Logger:     logger,
+		Config:     config,
 	})
 
-	handler := handler.NewHandler(ctx, services)
+	h := handler.NewHandler(ctx, svc)
 
-	server := http.NewServer(logger, handler, config.App.Debug)
+	server := http.NewServer(logger, h, config.App.Debug)
 
 	g.Go(func() error {
 		defer func() {
@@ -108,3 +103,4 @@ func Run() {
 		logger.Error(err)
 	}
 }
+

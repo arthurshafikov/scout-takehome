@@ -1,10 +1,7 @@
 package services
 
 import (
-	"context"
-
 	"github.com/arthurshafikov/scout-takehome/backend/internal/config"
-	"github.com/arthurshafikov/scout-takehome/backend/internal/core/constants/events"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/repository"
 )
@@ -14,28 +11,22 @@ type Logger interface {
 	Error(args ...interface{})
 }
 
-type EventsHandler interface {
-	Dispatch(eventName events.Event, params ...any)
-}
-
-type Test interface {
-	Create(ctx context.Context, models models.TestModel) error
+type PhotoService interface {
+	GetPhoto(id string) (*models.Photo, error)
 }
 
 type Services struct {
-	Test
+	PhotoService
 }
 
 type Deps struct {
-	Repository *repository.Repository
-	Logger
-	Config        *config.Config
-	EventsHandler EventsHandler
+	Repository repository.Repository
+	Logger     Logger
+	Config     *config.Config
 }
 
 func NewServices(deps Deps) *Services {
-
 	return &Services{
-		Test: NewTestService(),
+		PhotoService: NewPhotoService(deps.Repository, deps.Logger),
 	}
 }
