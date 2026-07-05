@@ -1,10 +1,49 @@
+version: '3.8'
+
 services:
-    # app:
-    #     build:
-    #         context: ../.
-    #         dockerfile: ./build/app/Dockerfile
-    #         target: dev
-    #     environment:
-    #         WAIT_HOSTS: minio:9000
-    #     depends_on: 
-    #         - minio
+  app:
+    build:
+      context: ../
+      dockerfile: build/app/Dockerfile
+      target: dev
+    ports:
+      - "8080:8080"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_PORT: "8080"
+      SQLITE_DB_PATH: /app/dataset/predictions.db
+      API_KEY: scout-api-key-12345
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: scout
+      MINIO_USE_SSL: "false"
+      THUMBNAIL_CACHE_TTL_HOURS: "24"
+    depends_on:
+      - minio
+    volumes:
+      - ../dataset:/app/dataset:ro
+    networks:
+      - scout-network
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - scout-network
+
+networks:
+  scout-network:
+    driver: bridge
+
+volumes:
+  minio_data:

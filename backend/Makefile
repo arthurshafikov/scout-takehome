@@ -1,4 +1,5 @@
 BIN := "./.bin/app"
+SEED := "./.bin/seed"
 
 include main.env
 
@@ -18,8 +19,14 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 build:
 	go build -a -o $(BIN) -ldflags "$(LDFLAGS)" cmd/app/main.go
 
+build-seed:
+	go build -o $(SEED) cmd/seed/main.go
+
 run: build 
 	 $(BIN) -cfgFolder ./configs -env ./
+
+seed: build-seed
+	$(SEED) -endpoint $(MINIO_ENDPOINT) -access-key $(MINIO_ACCESS_KEY) -secret-key $(MINIO_SECRET_KEY) -bucket $(MINIO_BUCKET)
 
 r:
 	go run ./... -cfgFolder ./configs -env ./
