@@ -79,11 +79,16 @@ func Run() {
 
 	repo := repository.NewRepository(db)
 
-	svc := services.NewServices(services.Deps{
+	svc, err := services.NewServices(services.Deps{
 		Repository: repo,
 		Logger:     logger,
 		Config:     config,
 	})
+	if err != nil {
+		logger.Fatalf("Failed to initialize services: %v", err)
+
+		return
+	}
 
 	h := handler.NewHandler(ctx, svc)
 

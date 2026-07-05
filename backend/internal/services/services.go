@@ -4,6 +4,7 @@ import (
 	"github.com/arthurshafikov/scout-takehome/backend/internal/config"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/repository"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services/storage"
 )
 
 type Logger interface {
@@ -17,6 +18,7 @@ type PhotoService interface {
 
 type Services struct {
 	PhotoService
+	storage.StorageService
 }
 
 type Deps struct {
@@ -25,8 +27,14 @@ type Deps struct {
 	Config     *config.Config
 }
 
-func NewServices(deps Deps) *Services {
-	return &Services{
-		PhotoService: NewPhotoService(deps.Repository, deps.Logger),
+func NewServices(deps Deps) (*Services, error) {
+	storageService, err := storage.NewMinIOStorageService(&deps.Config.MinIOConfig)
+	if err != nil {
+		return nil, err
 	}
+
+	return &Services{
+		PhotoService:   NewPhotoService(deps.Repository, deps.Logger),
+		StorageService: storageService,
+	}, nil
 }

@@ -1,0 +1,109 @@
+package storage
+package storage
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/arthurshafikov/scout-takehome/backend/internal/config"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+)
+
+type UploadLink struct {
+	URL       string            `json:"url"`
+	Method    string            `json:"method"`
+	Headers   map[string]string `json:"headers,omitempty"`
+	ExpiresAt time.Time         `json:"expiresAt"`
+}
+
+type StorageService interface {
+	GenerateUploadLink(ctx context.Context, photoID string, contentType string) (*UploadLink, error)
+	GetOriginalURL(ctx context.Context, photoID string) (string, error)
+	ObjectExists(ctx context.Context, photoID string) (bool, error)
+	PutObject(ctx context.Context, objectName string, reader interface{}, size int64, opts ...interface{}) error
+}
+
+type MinIOStorageService struct {
+	client *minio.Client
+	bucket string
+}
+
+func NewMinIOStorageService(config *config.MinIOConfig) (StorageService, error) {
+	client, err := minio.New(config.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticProvider(config.AccessKey, config.SecretKey, ""),
+		Secure: config.UseSSL,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create minio client: %w", err)
+	}
+
+	return &MinIOStorageService{
+		client: client,
+		bucket: config.Bucket,
+	}, nil
+}
+
+func (s *MinIOStorageService) GenerateUploadLink(
+	ctx context.Context,
+	photoID string,
+	contentType string,
+) (*UploadLink, error) {
+	objectName := fmt.Sprintf("originals/%s", photoID)
+	expiresAt := time.Now().Add(15 * time.Minute)
+
+	presignedURL, err := s.client.PresignedPutObject(ctx, s.bucket, objectName, expiresAt)
+	if err != nil {
+		return nil, fmt.Errorf("generate presigned put url: %w", err)
+	}
+
+	return &UploadLink{
+		URL:       presignedURL.String(),
+		Method:    "PUT",
+		ExpiresAt: expiresAt,
+	}, nil
+}
+
+func (s *MinIOStorageService) GetOriginalURL(ctx context.Context, photoID string) (string, error) {
+	objectName := fmt.Sprintf("originals/%s", photoID)
+	expiresAt := time.Now().Add(1 * time.Hour)
+
+	presignedURL, err := s.client.PresignedGetObject(ctx, s.bucket, objectName, expiresAt, nil)
+	if err != nil {
+		return "", fmt.Errorf("generate presigned get url: %w", err)
+	}
+
+	return presignedURL.String(), nil
+}
+
+func (s *MinIOStorageService) ObjectExists(ctx context.Context, photoID string) (bool, error) {
+	objectName := fmt.Sprintf("originals/%s", photoID)
+
+	_, err := s.client.StatObject(ctx, s.bucket, objectName, minio.StatObjectOptions{})
+	if err != nil {
+		errResponse := minio.ToErrorResponse(err)
+		if errResponse.Code == "NoSuchKey" {
+			return false, nil
+		}
+
+		return false, fmt.Errorf("stat object: %w", err)
+	}
+
+	return true, nil
+}
+
+func (s *MinIOStorageService) PutObject(
+	ctx context.Context,
+	objectName string,
+	reader interface{},
+	size int64,
+	opts ...interface{},
+) error {
+	_, err := s.client.PutObject(ctx, s.bucket, objectName, reader.(interface{}), size, minio.PutObjectOptions{})
+	if err != nil {
+		return fmt.Errorf("put object: %w", err)
+	}
+
+	return nil
+}
