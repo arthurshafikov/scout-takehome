@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 
-	"github.com/arthurshafikov/boilerplate/internal/core/models"
-	"github.com/arthurshafikov/boilerplate/internal/core/types"
-	"github.com/arthurshafikov/boilerplate/internal/repository/pgsql"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/repository/pgsql"
 	"gorm.io/gorm"
 )
 
@@ -25,6 +25,6 @@ func NewRepository(db *gorm.DB) *Repository {
 	baseRepo := pgsql.NewBaseRepo(db)
 
 	return &Repository{
-		Test:          pgsql.NewTestRepository(*baseRepo),
+		Test: pgsql.NewTestRepository(*baseRepo),
 	}
 }

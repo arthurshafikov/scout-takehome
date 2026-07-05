@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/arthurshafikov/boilerplate/internal/core/models"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
 )
 
 type TestService struct {

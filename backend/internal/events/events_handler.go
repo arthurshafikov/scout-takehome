@@ -3,10 +3,10 @@ package events
 import (
 	"context"
 
-	"github.com/arthurshafikov/boilerplate/internal/config"
-	"github.com/arthurshafikov/boilerplate/internal/core/constants/events"
-	"github.com/arthurshafikov/boilerplate/internal/events/listeners"
-	"github.com/arthurshafikov/boilerplate/internal/services"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/config"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/constants/events"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/events/listeners"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services"
 	"golang.org/x/sync/errgroup"
 )
 

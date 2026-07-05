@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	events "github.com/arthurshafikov/boilerplate/internal/core/constants/events"
-	models "github.com/arthurshafikov/boilerplate/internal/core/models"
+	events "github.com/arthurshafikov/scout-takehome/backend/internal/core/constants/events"
+	models "github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
 	gomock "github.com/golang/mock/gomock"
 )
 

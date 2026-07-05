@@ -3,7 +3,7 @@ package jobs
 import (
 	"context"
 
-	"github.com/arthurshafikov/boilerplate/internal/services"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services"
 )
 
 type TestJob struct {

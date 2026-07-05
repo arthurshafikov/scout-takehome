@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/arthurshafikov/boilerplate/internal/services"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services"
 	"github.com/gin-gonic/gin"
 )
 

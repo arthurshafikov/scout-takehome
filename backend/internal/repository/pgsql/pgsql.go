@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/arthurshafikov/boilerplate/internal/config"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

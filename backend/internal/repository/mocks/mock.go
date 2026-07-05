@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	models "github.com/arthurshafikov/boilerplate/internal/core/models"
-	types "github.com/arthurshafikov/boilerplate/internal/core/types"
+	models "github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
+	types "github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
 	gomock "github.com/golang/mock/gomock"
 )
 

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/arthurshafikov/boilerplate/internal/config"
-	"github.com/arthurshafikov/boilerplate/internal/scheduler/jobs"
-	"github.com/arthurshafikov/boilerplate/internal/services"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/config"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/scheduler/jobs"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/google/uuid"
 )

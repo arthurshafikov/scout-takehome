@@ -3,7 +3,7 @@ package pgsql
 import (
 	"context"
 
-	"github.com/arthurshafikov/boilerplate/internal/core/types"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
 	"gorm.io/gorm"
 )
 

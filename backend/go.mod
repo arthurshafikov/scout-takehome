@@ -1,4 +1,4 @@
-module github.com/arthurshafikov/boilerplate
+module github.com/arthurshafikov/scout-takehome/backend
 
 go 1.25.5
 

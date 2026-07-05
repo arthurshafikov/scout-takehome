@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 
-	"github.com/arthurshafikov/boilerplate/internal/config"
-	"github.com/arthurshafikov/boilerplate/internal/core/constants/events"
-	"github.com/arthurshafikov/boilerplate/internal/core/models"
-	"github.com/arthurshafikov/boilerplate/internal/repository"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/config"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/constants/events"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/repository"
 )
 
 type Logger interface {

@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/arthurshafikov/boilerplate/internal/core/types"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
 	"github.com/gin-gonic/gin"
 )
 
