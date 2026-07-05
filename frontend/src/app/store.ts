@@ -1,9 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit'
+import { apiSlice } from '@/services/api'
+import filtersReducer from '@/features/filters/filtersSlice'
 
 export const store = configureStore({
   reducer: {
-    // Slices will be added here in Phase C
+    [apiSlice.reducerPath]: apiSlice.reducer,
+    filters: filtersReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(apiSlice.middleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>

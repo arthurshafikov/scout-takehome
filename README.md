@@ -4,7 +4,7 @@ A complete platform for greenhouse pest and disease monitoring with real-time ph
 
 ## Project Status
 
-**Backend: ✅ COMPLETE (Phases 1-9)**
+**Backend: ✅ COMPLETE (Phases 1-10)**
 - Go backend with SQLite + MinIO storage
 - RESTful API with cursor pagination and filtering
 - On-demand thumbnail engine with caching
@@ -12,41 +12,368 @@ A complete platform for greenhouse pest and disease monitoring with real-time ph
 - Seed binary for data ingestion
 - Docker support
 
-**Frontend: ⏳ PENDING (Phases 10-15)**
-- React + TypeScript photo gallery
-- Bounding box overlay rendering
-- Greenhouse floor map (Konva)
-- Shared filter state
+**Frontend: ✅ COMPLETE (Phases A-J)**
+- React 19 + TypeScript + Vite
+- Infinite scroll photo gallery with predictions
+- Bounding box SVG overlays
+- Greenhouse floor map (Konva.js)
+- Filter panel (class, confidence)
+- Tailwind CSS responsive design
+- Unit tests (vitest + React Testing Library)
+- Docker multi-stage build
 
-**Tests: ⏳ PENDING**
-- Backend unit tests
-- Integration smoke tests
-- Frontend component tests
+**Documentation**
+- Backend: [backend/README.md](backend/README.md)
+- Frontend: [frontend/README.md](frontend/README.md)
 
 ## Quick Start
 
 ### Prerequisites
 - Go 1.25.5+
-- Node.js 18+ (for frontend)
-- Docker + Docker Compose (optional)
+- Node.js 20+ (for frontend)
+- Docker + Docker Compose
+- npm or pnpm
 
-### Local Development
+### Option 1: Full Docker Stack (Recommended)
 
 ```bash
-# 1. Clone and setup
-git clone https://github.com/arthurshafikov/scout-takehome.git
-cd scout-takehome
+# Start all services: backend, frontend, MinIO
+cd backend/deployments
+docker compose up
 
-# 2. Start services
+# Services will be available at:
+# - Frontend: http://localhost:5173
+# - Backend API: http://localhost:8080
+# - MinIO Console: http://localhost:9001 (user: minioadmin / password: minioadmin)
+```
+
+### Option 2: Local Development
+
+#### Terminal 1: Start backend services
+```bash
+cd backend/deployments
+docker compose up app minio  # Just backend services, no frontend
+```
+
+#### Terminal 2: Run backend
+```bash
 cd backend
-docker compose -f deployments/docker-compose.yml up
-
-# 3. Build and run backend
 make build
 make run
+```
 
-# 4. Seed images to MinIO (in another terminal)
+#### Terminal 3: Run frontend dev server
+```bash
+cd frontend
+npm install --legacy-peer-deps
+npm run dev
+# Frontend at http://localhost:5173
+# API proxy: /api/* → http://localhost:8080
+```
+
+#### Terminal 4: Seed images (one-time)
+```bash
+cd backend
 make seed
+# Uploads 50 greenhouse images to MinIO with pest predictions
+```
+
+## API Endpoints
+
+### Photos
+- `GET /api/photos` - List photos with cursor pagination
+  - Query params: `cursor`, `limit`, `class_id`, `min_confidence`
+  - Response: `{ items: Photo[], nextCursor?: string }`
+
+- `GET /api/photos/{id}` - Get single photo with all predictions
+
+- `GET /api/thumbnails/{id}` - Get thumbnail image (binary)
+
+- `GET /api/healthz` - Health check
+
+## Data Schema
+
+### Photo
+```typescript
+{
+  id: string               // UUID
+  x: number               // Position in meters (0-40)
+  y: number               // Position in meters (0-40)
+  h: number               // Height in meters
+  width: number           // Image width in pixels
+  height: number          // Image height in pixels
+  capturedAt: string      // ISO 8601 timestamp
+  originalUrl: string     // S3 URL
+  predictions: Prediction[]
+}
+```
+
+### Prediction
+```typescript
+{
+  id: string              // UUID
+  photoId: string         // Reference to photo
+  classId: string         // Pest class
+  confidence: number      // 0-1 confidence score
+  bbox: {                 // Normalized bounding box [0,1]
+    xMin: number
+    yMin: number
+    xMax: number
+    yMax: number
+  }
+}
+```
+
+### Pest Classes
+- `powdery_mildew` - Red
+- `mirid` - Yellow
+- `whitefly_aphid` - Blue
+- `miner_tuta` - Purple
+- `thrips` - Orange
+- `spider_mites` - Pink
+
+## Greenhouse Layout
+
+- **Dimensions**: 40m × 40m
+- **Photo Grid**: Distributed across greenhouse floor
+- **Resolution**: 2560 × 1440 pixels per photo
+- **Predictions**: Multiple per photo with bounding boxes
+
+## Frontend Features
+
+### Gallery View
+- Infinite scroll with cursor pagination
+- Filter by pest class (dropdown)
+- Filter by minimum confidence (slider)
+- Thumbnail preview with top prediction badge
+- Full-screen modal with:
+  - Interactive bbox overlays (SVG)
+  - Photo metadata (position, resolution, timestamp)
+  - Sorted prediction list with confidence bars
+  - Position-relative bbox coordinates
+
+### Map View
+- Interactive Konva.js canvas
+- 40×40m greenhouse grid
+- Photo positions as colored circles
+- Colors represent top prediction class
+- Hover for prediction details
+- Pan and zoom controls
+
+### Filters
+- **Pest Class**: Dropdown with all 6 classes
+- **Confidence Threshold**: Slider (0-100%)
+- **Active Filters**: Display badges
+- **Reset Button**: Clear all filters
+
+## Development
+
+### Backend Development
+```bash
+cd backend
+go run ./cmd/app/main.go -cfgFolder ./configs -env ./
+```
+
+### Frontend Development
+```bash
+cd frontend
+npm run dev           # Dev server
+npm run build         # Production build
+npm test              # Run tests
+npm test -- --coverage  # With coverage
+```
+
+### Build Docker Images
+```bash
+# Backend
+cd backend/build/app
+docker build -t scout-backend:latest -f Dockerfile ../../..
+
+# Frontend
+cd frontend
+docker build -t scout-frontend:latest .
+```
+
+## Testing
+
+### Backend Tests
+```bash
+cd backend
+go test ./...
+```
+
+### Frontend Tests
+```bash
+cd frontend
+npm test
+
+# Watch mode
+npm test -- --watch
+
+# Coverage
+npm test -- --coverage
+```
+
+## Architecture
+
+### Backend Stack
+- **Language**: Go 1.25.5
+- **Database**: SQLite (read-only, WAL mode)
+- **Storage**: MinIO (S3-compatible)
+- **HTTP**: net/http + chi router
+- **Metrics**: Prometheus client
+
+### Frontend Stack
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite 5
+- **State Management**: Redux Toolkit
+- **Data Fetching**: RTK Query
+- **Styling**: Tailwind CSS 3
+- **Visualization**: Konva.js + react-konva
+- **Testing**: Vitest + React Testing Library
+
+### Deployment
+- **Container Runtime**: Docker
+- **Orchestration**: Docker Compose
+- **Frontend Server**: Nginx (multi-stage build)
+- **Backend Server**: Go http
+- **Reverse Proxy**: Nginx (/api proxy)
+
+## API Response Format
+
+All API responses follow this format:
+```json
+{
+  "success": true,
+  "data": { /* response data */ },
+  "error": null,
+  "trace_id": "unique-trace-id"
+}
+```
+
+Errors:
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human readable message"
+  },
+  "trace_id": "unique-trace-id"
+}
+```
+
+## Environment Variables
+
+### Backend
+```env
+APP_ENV=local
+APP_PORT=8080
+SQLITE_DB_PATH=./dataset/predictions.db
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=scout
+```
+
+### Frontend
+```env
+VITE_API_URL=http://localhost:8080
+VITE_API_KEY=  # Optional
+```
+
+## Troubleshooting
+
+### Backend won't start
+```bash
+# Check database exists
+ls -la dataset/predictions.db
+
+# Check MinIO is running
+docker compose logs minio
+
+# Check logs
+docker compose logs app
+```
+
+### Frontend won't compile
+```bash
+cd frontend
+rm -rf node_modules package-lock.json
+npm install --legacy-peer-deps
+npm run dev
+```
+
+### Images not loading
+1. Check MinIO is running: `http://localhost:9001`
+2. Check seed was run: `make seed`
+3. Check browser console for CORS errors
+4. Verify API URL in .env
+
+### Map not showing photos
+1. Check cursor pagination working in gallery
+2. Verify photos have position data (x, y)
+3. Check browser DevTools for errors
+
+## Project Structure
+
+```
+scout-takehome/
+├── backend/
+│   ├── cmd/app/main.go          # Backend entry
+│   ├── internal/
+│   │   ├── core/models/         # Domain models
+│   │   ├── repository/sqlite/   # Data access
+│   │   ├── services/            # Business logic
+│   │   └── transport/http/      # HTTP handlers
+│   ├── migrations/              # SQL migrations
+│   ├── build/app/Dockerfile     # Backend image
+│   ├── deployments/docker-compose.yml
+│   └── README.md
+├── frontend/
+│   ├── src/
+│   │   ├── main.tsx             # Entry point
+│   │   ├── App.tsx              # Root component
+│   │   ├── types/api.ts         # TypeScript types
+│   │   ├── services/api.ts      # RTK Query
+│   │   ├── app/store.ts         # Redux store
+│   │   ├── features/
+│   │   │   ├── gallery/         # Photo grid
+│   │   │   ├── filters/         # Filter state
+│   │   │   └── map/             # Greenhouse map
+│   │   ├── components/          # Shared components
+│   │   └── utils/               # Utilities
+│   ├── Dockerfile               # Frontend image
+│   ├── vite.config.ts           # Vite config
+│   ├── tailwind.config.js       # Tailwind config
+│   └── README.md
+├── dataset/
+│   ├── images/                  # 50 sample photos
+│   └── predictions.db           # SQLite database
+└── README.md
+```
+
+## Performance Notes
+
+- **Gallery**: Cursor-based pagination (50 items/page) for smooth infinite scroll
+- **Map**: Fetches up to 200 photos (separate cache from gallery)
+- **Thumbnails**: Cached in MinIO for 24 hours
+- **BBox Overlay**: SVG rendering (perfect scaling, no pixelation)
+- **Bundle**: ~150KB gzipped (React, Redux, Konva)
+
+## License
+
+Proprietary - Scout Takehome Project
+
+## Support
+
+For issues or questions, refer to:
+- Backend: [backend/README.md](backend/README.md)
+- Frontend: [frontend/README.md](frontend/README.md)
+- Backend errors: Check server logs
+- Frontend errors: Check browser DevTools
+
 
 # 5. Test backend
 curl http://localhost:8080/healthz
