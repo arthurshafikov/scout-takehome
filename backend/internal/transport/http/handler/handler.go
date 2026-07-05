@@ -39,6 +39,17 @@ func (h *Handler) Init(e *gin.Engine) {
 
 	// Thumbnails endpoint
 	e.GET("/thumbnails/:id", h.getThumbnail)
+
+	// Metrics endpoint
+	e.GET("/metrics", h.getMetrics)
+}
+
+func (h *Handler) getMetrics(c *gin.Context) {
+	// TODO: Implement metrics endpoint using Prometheus
+	c.JSON(200, gin.H{
+		"status": "ok",
+		"message": "Metrics endpoint - TODO: implement Prometheus metrics",
+	})
 }
 
 func (h *Handler) initHealthCheck(e *gin.Engine) {
