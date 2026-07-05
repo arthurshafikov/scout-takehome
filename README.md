@@ -34,49 +34,128 @@ A complete platform for greenhouse pest and disease monitoring with real-time ph
 - Docker + Docker Compose
 - npm or pnpm
 
-### Option 1: Full Docker Stack (Recommended)
+### ⚡ 5-Minute Quick Start (Docker Only)
 
+1. **Start all services** (one command):
 ```bash
-# Start all services: backend, frontend, MinIO
 cd backend/deployments
 docker compose up
-
-# Services will be available at:
-# - Frontend: http://localhost:5173
-# - Backend API: http://localhost:8080
-# - MinIO Console: http://localhost:9001 (user: minioadmin / password: minioadmin)
 ```
 
-### Option 2: Local Development
+2. **Open in browser**:
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8080/api/healthz
+   - MinIO Console: http://localhost:9001 (user: `minioadmin` / password: `minioadmin`)
 
-#### Terminal 1: Start backend services
+3. **Verify it works**:
+   - Gallery loads with photos ✅
+   - Click a photo to see full view with bounding boxes ✅
+   - Try filters (pest class dropdown, confidence slider) ✅
+   - Switch to "Map View" tab ✅
+
+**That's it!** Your full Scout platform is running.
+
+---
+
+### Option 1: Full Docker Stack (Recommended for Testing)
+
 ```bash
 cd backend/deployments
-docker compose up app minio  # Just backend services, no frontend
+docker compose up
 ```
 
-#### Terminal 2: Run backend
+**What starts**:
+- Frontend (React dev server): http://localhost:5173
+- Backend API: http://localhost:8080
+- MinIO (image storage): http://localhost:9001
+- 50 sample photos with pest predictions
+
+**To stop**: Press `Ctrl+C`
+
+---
+
+### Option 2: Local Development (Best for Coding)
+
+Use 4 terminal tabs:
+
+#### Terminal 1: Backend Services (Docker)
+```bash
+cd backend/deployments
+docker compose up app minio
+```
+
+#### Terminal 2: Run Backend Server
 ```bash
 cd backend
 make build
 make run
 ```
 
-#### Terminal 3: Run frontend dev server
+#### Terminal 3: Run Frontend Dev Server
 ```bash
 cd frontend
 npm install --legacy-peer-deps
 npm run dev
-# Frontend at http://localhost:5173
-# API proxy: /api/* → http://localhost:8080
 ```
+Frontend runs at: http://localhost:5173 with hot-reload
 
-#### Terminal 4: Seed images (one-time)
+#### Terminal 4: Seed Images (One-time)
 ```bash
 cd backend
 make seed
-# Uploads 50 greenhouse images to MinIO with pest predictions
 ```
+Uploads 50 greenhouse photos with AI pest predictions to MinIO.
+
+---
+
+### Option 3: Run Frontend Tests Only
+
+```bash
+cd frontend
+npm install --legacy-peer-deps
+npm test              # Run all 25 tests
+npm test -- --watch  # Watch mode (re-run on changes)
+npm test -- --coverage  # With coverage report
+```
+
+Tests cover:
+- ✅ Bounding box coordinate transformations (10 tests)
+- ✅ Thumbnail URL utilities (6 tests)
+- ✅ Redux filters & pagination state (9 tests)
+
+---
+
+## ✅ Verify It's Working
+
+### Quick Health Checks
+
+**All services running?**
+```bash
+# Backend health
+curl http://localhost:8080/api/healthz
+# Expected: {"success": true, "data": {"Test": true}}
+
+# MinIO is up
+curl http://localhost:9000
+# Expected: XML response
+
+# Frontend is serving
+curl http://localhost:5173
+# Expected: HTML content
+```
+
+**Via Browser**:
+1. Open http://localhost:5173 → Should see Scout gallery
+2. Scroll down → Photos should load (infinite scroll)
+3. Click a photo → Modal opens with full image & bbox overlays
+4. Filters panel → Try selecting pest class or adjusting confidence
+5. Click "Map View" tab → Should see greenhouse floor map
+
+**Common Issues**:
+- ❌ "Cannot GET /" at 5173? → Frontend container building, wait 30s
+- ❌ "Connection refused" on /api? → Backend not started, check `make run`
+- ❌ No photos loading? → Run `make seed` in another terminal
+- ❌ Thumbnails broken? → Check MinIO console (http://localhost:9001)
 
 ## API Endpoints
 
