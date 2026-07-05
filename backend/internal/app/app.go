@@ -15,6 +15,7 @@ import (
 	configPkg "github.com/arthurshafikov/scout-takehome/backend/internal/config"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/repository"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/services"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services/thumbnail"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/transport/http"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/transport/http/handler"
 	"github.com/sirupsen/logrus"
@@ -90,7 +91,17 @@ func Run() {
 		return
 	}
 
-	h := handler.NewHandler(ctx, svc)
+	// Initialize thumbnail generator
+	minioClient, err := svc.StorageService.GetMinIOClient()
+	if err != nil {
+		logger.Fatalf("Failed to get MinIO client for thumbnails: %v", err)
+
+		return
+	}
+
+	thumbnailGen := thumbnail.NewThumbnailGenerator(minioClient, config.MinIOConfig.Bucket)
+
+	h := handler.NewHandler(ctx, svc, thumbnailGen)
 
 	server := http.NewServer(logger, h, config.App.Debug)
 

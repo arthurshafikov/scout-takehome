@@ -6,6 +6,7 @@ import (
 
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services/thumbnail"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -171,4 +172,52 @@ func (h *Handler) generateUploadLink(c *gin.Context) {
 	}
 
 	successResponse(c, 200, uploadLink, traceID)
+}
+
+func (h *Handler) getThumbnail(c *gin.Context) {
+	traceID := getTraceID(c)
+	photoID := c.Param("id")
+
+	if photoID == "" {
+		c.JSON(400, APIResponse[interface{}]{
+			Success: false,
+			Error: &ErrorBody{
+				Code:    "missing_photo_id",
+				Message: "Photo ID is required",
+			},
+			TraceID: traceID,
+		})
+		return
+	}
+
+	// Parse query parameters
+	widthStr := c.DefaultQuery("w", "400")
+	qualityStr := c.DefaultQuery("q", "85")
+
+	width, err := strconv.Atoi(widthStr)
+	if err != nil || width < 1 || width > 2000 {
+		width = 400
+	}
+
+	quality, err := strconv.Atoi(qualityStr)
+	if err != nil || quality < 1 || quality > 100 {
+		quality = 85
+	}
+
+	// Generate thumbnail
+	ctx := context.Background()
+	opts := thumbnail.ThumbnailOptions{
+		Width:   width,
+		Height:  int(float64(width) * 0.75), // 4:3 aspect ratio
+		Quality: quality,
+	}
+
+	thumbnailData, err := h.thumbnailGenerator.Generate(ctx, photoID, opts)
+	if err != nil {
+		errorResponse(c, err, traceID)
+		return
+	}
+
+	// Set response headers and stream the image
+	c.Data(200, "image/jpeg", thumbnailData)
 }

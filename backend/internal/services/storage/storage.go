@@ -21,6 +21,7 @@ type StorageService interface {
 	GenerateUploadLink(ctx context.Context, photoID string, contentType string) (*UploadLink, error)
 	GetOriginalURL(ctx context.Context, photoID string) (string, error)
 	ObjectExists(ctx context.Context, photoID string) (bool, error)
+	GetMinIOClient() (*minio.Client, error)
 }
 
 type MinIOStorageService struct {
@@ -91,4 +92,11 @@ func (s *MinIOStorageService) ObjectExists(ctx context.Context, photoID string) 
 	}
 
 	return true, nil
+}
+
+func (s *MinIOStorageService) GetMinIOClient() (*minio.Client, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("minio client not initialized")
+	}
+	return s.client, nil
 }
