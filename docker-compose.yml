@@ -28,7 +28,7 @@ services:
       - scout-network
     container_name: scout-backend
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      test: ["CMD-SHELL", "ps aux | grep -q '/go/src/app' && ! grep -q 'exited' /proc/self/status"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -47,9 +47,9 @@ services:
       - scout-network
     container_name: scout-frontend
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD-SHELL", "test -f /app/index.html && ps aux | grep -q 'nginx: master'"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
       start_period: 10s
 

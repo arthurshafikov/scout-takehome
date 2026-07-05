@@ -40,6 +40,9 @@ func NewServer(logger Logger, handler Handler, debug bool) *Server {
 }
 
 func (s *Server) Serve(ctx context.Context, g *errgroup.Group, port string) error {
+	// Add CORS middleware
+	s.Engine.Use(corsMiddleware())
+
 	s.handler.Init(s.Engine)
 
 	s.httpSrv = &http.Server{
@@ -68,4 +71,20 @@ func (s *Server) shutdown() error {
 	defer cancel()
 
 	return s.httpSrv.Shutdown(ctx)
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
