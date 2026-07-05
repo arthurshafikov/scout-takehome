@@ -1,12 +1,15 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import type { Photo, PhotoPage, ListPhotosParams, HealthCheck } from '@/types/api'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+// Always use relative path for API calls - this ensures they work through nginx proxy
+// In production (Docker): localhost:5173 -> nginx -> /api -> backend at http://app:8080
+// In development: localhost:5173 -> Vite proxy or direct to http://localhost:8080
+const API_BASE_URL = '/api'
 
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/api`,
+    baseUrl: API_BASE_URL,
     prepareHeaders: (headers) => {
       const apiKey = import.meta.env.VITE_API_KEY
       if (apiKey) {
@@ -25,14 +28,33 @@ export const apiSlice = createApi({
      * user scrolls to bottom. Each query arg change creates new cache entry.
      */
     listPhotos: builder.query<PhotoPage, ListPhotosParams>({
-      query: (params) => {
+      queryFn: async (params, _api, _options, baseQuery) => {
         const searchParams = new URLSearchParams()
         if (params.cursor) searchParams.append('cursor', params.cursor)
         if (params.limit) searchParams.append('limit', String(params.limit))
         if (params.class_id) searchParams.append('class_id', params.class_id)
         if (params.min_confidence !== undefined)
           searchParams.append('min_confidence', String(params.min_confidence))
-        return `/photos?${searchParams.toString()}`
+        
+        const result = await baseQuery(`/photos?${searchParams.toString()}`)
+        
+        if (result.error) {
+          return { error: result.error }
+        }
+        
+        // Transform response: backend returns { success, data: { items, next_token } }
+        // We need to return { items, nextCursor }
+        const response = result.data as { success: boolean; data: { items: Photo[]; next_token?: string } }
+        if (response.data?.items) {
+          return {
+            data: {
+              items: response.data.items,
+              nextCursor: response.data.next_token,
+            }
+          }
+        }
+        
+        return { data: { items: [] } }
       },
       providesTags: ['Photos'],
     }),
@@ -52,7 +74,7 @@ export const apiSlice = createApi({
      */
     getThumbnailUrl: builder.query<string, string>({
       queryFn: (id) => {
-        const url = `${API_URL}/api/thumbnails/${id}`
+        const url = `${API_BASE_URL}/thumbnails/${id}`
         return { data: url }
       },
     }),

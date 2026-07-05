@@ -26,7 +26,7 @@ export interface Photo {
   width: number
   height: number
   capturedAt: string
-  originalUrl: string
+  originalUrl?: string
   predictions: Prediction[]
 }
 
