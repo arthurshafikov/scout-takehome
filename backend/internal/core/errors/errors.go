@@ -12,6 +12,10 @@ var (
 	ErrTooManyRequests = errors.New("429_too_many_requests")
 	ErrAlreadyExists   = errors.New("already_exists")
 	ErrEmpty           = errors.New("empty")
+	ErrPhotoNotFound   = errors.New("photo_not_found")
+	ErrBadCursor       = errors.New("bad_cursor")
+	ErrInvalidParam    = errors.New("invalid_param")
+	ErrUnauthorized    = errors.New("unauthorized")
 )
 
 func Is(err, target error) bool {

@@ -9,15 +9,11 @@ ifeq ($(APP_ENV), production)
 else
 	DOCKER_COMPOSE_FILE := "deployments/docker-compose.yml"
 endif
-DOCKER_COMPOSE_TEST_FILE := "./deployments/docker-compose.tests.yml"
 
-APP_NAME := "boilerplate"
-APP_TEST_NAME := "boilerplate_test"
+APP_NAME := "scout"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
-
-POSTGRESQL_DSN="host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=${DB_NAME} port=${DB_PORT} sslmode=${DB_SSL_MODE} TimeZone=${DB_TIMEZONE}"
 
 build:
 	go build -a -o $(BIN) -ldflags "$(LDFLAGS)" cmd/app/main.go
@@ -65,43 +61,4 @@ mocks:
 	mockgen -source=./internal/services/services.go -destination ./internal/services/mocks/mock.go
 	mockgen -source=./internal/transport/http/server.go -destination ./internal/transport/http/mocks/mock.go
 
-integration-tests:
-	$(DOCKER_COMPOSE) -f ${DOCKER_COMPOSE_TEST_FILE} -p ${APP_TEST_NAME} up pgsql_test --wait
-	goose -dir migrations postgres "host=localhost user=test password=test dbname=test port=54400 sslmode=prefer TimeZone=UTC" up
-	$(DOCKER_COMPOSE) -f ${DOCKER_COMPOSE_TEST_FILE} -p ${APP_TEST_NAME} up app --attach app --abort-on-container-exit --exit-code-from app
-	$(DOCKER_COMPOSE) -f ${DOCKER_COMPOSE_TEST_FILE} -p ${APP_TEST_NAME} down --volumes
-
-reset-integration-tests:
-	$(DOCKER_COMPOSE) -f ${DOCKER_COMPOSE_TEST_FILE} -p ${APP_TEST_NAME} down --volumes
-
-refresh: reset 
-	make migrate
-
-# DB commands for docker
-migrate-in-docker:
-	$(DOCKER_COMPOSE) --env-file ./main.env -f ${DOCKER_COMPOSE_FILE} -p ${APP_NAME} exec --workdir /go/src app goose -dir migrations postgres ${POSTGRESQL_DSN} up
-
-rollback-in-docker:
-	$(DOCKER_COMPOSE) --env-file ./main.env -f ${DOCKER_COMPOSE_FILE} -p ${APP_NAME} exec --workdir /go/src app goose -dir migrations postgres ${POSTGRESQL_DSN} down
-
-reset-in-docker:
-	$(DOCKER_COMPOSE) --env-file ./main.env -f ${DOCKER_COMPOSE_FILE} -p ${APP_NAME} exec --workdir /go/src app goose -dir migrations postgres ${POSTGRESQL_DSN} reset
-
-# DB commands for working without docker
-migrate:
-	goose -dir migrations postgres ${POSTGRESQL_DSN} up
-	
-migrate-tests:
-	goose -dir migrations postgres "host=${DB_HOST} user=${DB_USER} password=${DB_PASSWORD} dbname=postgres port=${DB_PORT} sslmode=${DB_SSL_MODE} TimeZone=${DB_TIMEZONE}" up
-
-migrate-one:
-	goose -dir migrations postgres ${POSTGRESQL_DSN} up-by-one
-
-rollback:
-	goose -dir migrations postgres ${POSTGRESQL_DSN} down
-
-reset:
-	goose -dir migrations postgres ${POSTGRESQL_DSN} reset
-
-newmig:
-	goose -dir migrations create ${NAME} sql
+.PHONY: build test run lint mocks ps go up stop down restart

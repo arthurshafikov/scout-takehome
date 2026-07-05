@@ -3,7 +3,6 @@ package config
 import (
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/spf13/viper"
 )
@@ -12,44 +11,46 @@ const (
 	AppProductionEnv = "production"
 	AppLocalEnv      = "local"
 	AppTestingEnv    = "testing"
-	SSLModePrefer    = "prefer"
-	TimeZoneUTC      = "UTC"
 )
 
 type Config struct {
-	App      `mapstructure:",squash"`
-	DBConfig `mapstructure:",squash"`
-}
-
-type App struct {
-	Env                       string `mapstructure:"APP_ENV"`
-	Debug                     bool   `mapstructure:"APP_DEBUG"`
-	Port                      string `mapstructure:"APP_PORT"`
+	App              `mapstructure:",squash"`
+	SQLiteConfig     `mapstructure:",squash"`
+	MinIOConfig      `mapstructure:",squash"`
+	APIKeyConfig     `mapstructure:",squash"`
+	ThumbnailConfig  `mapstructure:",squash"`
 	MaxEventHandlerGoroutines int
 }
 
-type DBConfig struct {
-	Host     string `mapstructure:"DB_HOST"`
-	User     string `mapstructure:"DB_USER"`
-	Password string `mapstructure:"DB_PASSWORD"`
-	DBName   string `mapstructure:"DB_NAME"`
-	Port     int64  `mapstructure:"DB_PORT"`
-	SSLMode  string `mapstructure:"DB_SSL_MODE"`
-	TimeZone string `mapstructure:"DB_TIMEZONE"`
+type App struct {
+	Env   string `mapstructure:"APP_ENV"`
+	Debug bool   `mapstructure:"APP_DEBUG"`
+	Port  string `mapstructure:"APP_PORT"`
+}
+
+type SQLiteConfig struct {
+	DBPath string `mapstructure:"SQLITE_DB_PATH"`
+}
+
+type MinIOConfig struct {
+	Endpoint   string `mapstructure:"MINIO_ENDPOINT"`
+	AccessKey  string `mapstructure:"MINIO_ACCESS_KEY"`
+	SecretKey  string `mapstructure:"MINIO_SECRET_KEY"`
+	Bucket     string `mapstructure:"MINIO_BUCKET"`
+	UseSSL     bool   `mapstructure:"MINIO_USE_SSL"`
+}
+
+type APIKeyConfig struct {
+	APIKey string `mapstructure:"API_KEY"`
+}
+
+type ThumbnailConfig struct {
+	CacheTTLHours int `mapstructure:"THUMBNAIL_CACHE_TTL_HOURS"`
 }
 
 func NewConfig(envFolderPath, configFolder string) *Config {
-	var config Config
-
-	viper.AddConfigPath(configFolder)
-	viper.SetConfigName("app")
-	viper.SetConfigType("yml")
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalln(err)
-	}
-
-	if err := viper.Unmarshal(&config); err != nil {
-		log.Fatalln(err)
+	config := &Config{
+		MaxEventHandlerGoroutines: 10,
 	}
 
 	if envFolderPath == "" {
@@ -58,27 +59,40 @@ func NewConfig(envFolderPath, configFolder string) *Config {
 		config.readEnvVarsFromFile(envFolderPath)
 	}
 
+	// Validate required fields
+	if config.SQLiteConfig.DBPath == "" {
+		log.Fatalln("SQLITE_DB_PATH environment variable is required")
+	}
+	if config.APIKeyConfig.APIKey == "" {
+		log.Fatalln("API_KEY environment variable is required")
+	}
+	if config.MinIOConfig.Endpoint == "" {
+		log.Fatalln("MINIO_ENDPOINT environment variable is required")
+	}
+
 	// Default values
-	if config.DBConfig.Port == 0 {
-		config.DBConfig.Port = 3306
+	if config.App.Env == "" {
+		config.App.Env = AppProductionEnv
 	}
-	if config.DBConfig.SSLMode == "" {
-		config.DBConfig.SSLMode = SSLModePrefer
+	if config.App.Port == "" {
+		config.App.Port = "8080"
 	}
-	if config.DBConfig.TimeZone == "" {
-		config.DBConfig.TimeZone = TimeZoneUTC
+	if config.MinIOConfig.Bucket == "" {
+		config.MinIOConfig.Bucket = "scout"
+	}
+	if config.ThumbnailConfig.CacheTTLHours == 0 {
+		config.ThumbnailConfig.CacheTTLHours = 24
 	}
 
 	switch config.App.Env {
 	case AppLocalEnv:
 	case AppProductionEnv:
 	case AppTestingEnv:
-		break
 	default:
-		panic("unknown APP_ENV type " + config.App.Env)
+		log.Fatalln("unknown APP_ENV: " + config.App.Env)
 	}
 
-	return &config
+	return config
 }
 
 func (c *Config) readEnvVarsFromFile(envFolderPath string) {
@@ -96,21 +110,12 @@ func (c *Config) readEnvVarsFromFile(envFolderPath string) {
 func (c *Config) readEnvVarsFromSystem() {
 	c.App.Debug = os.Getenv("APP_DEBUG") == "true"
 	c.App.Env = os.Getenv("APP_ENV")
-	if c.App.Env == "" {
-		c.App.Env = AppProductionEnv
-	}
-
-	if os.Getenv("DB_PORT") != "" {
-		portInt64, err := strconv.ParseInt(os.Getenv("DB_PORT"), 10, 64)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		c.DBConfig.Port = portInt64
-	}
-	c.DBConfig.Host = os.Getenv("DB_HOST")
-	c.DBConfig.User = os.Getenv("DB_USER")
-	c.DBConfig.Password = os.Getenv("DB_PASSWORD")
-	c.DBConfig.DBName = os.Getenv("DB_NAME")
-	c.DBConfig.SSLMode = os.Getenv("DB_SSL_MODE")
-	c.DBConfig.TimeZone = os.Getenv("DB_TIMEZONE")
+	c.App.Port = os.Getenv("APP_PORT")
+	c.SQLiteConfig.DBPath = os.Getenv("SQLITE_DB_PATH")
+	c.APIKeyConfig.APIKey = os.Getenv("API_KEY")
+	c.MinIOConfig.Endpoint = os.Getenv("MINIO_ENDPOINT")
+	c.MinIOConfig.AccessKey = os.Getenv("MINIO_ACCESS_KEY")
+	c.MinIOConfig.SecretKey = os.Getenv("MINIO_SECRET_KEY")
+	c.MinIOConfig.Bucket = os.Getenv("MINIO_BUCKET")
+	c.MinIOConfig.UseSSL = os.Getenv("MINIO_USE_SSL") == "true"
 }
