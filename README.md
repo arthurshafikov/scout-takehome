@@ -38,7 +38,6 @@ A complete platform for greenhouse pest and disease monitoring with real-time ph
 
 1. **Start all services** (one command):
 ```bash
-cd backend/deployments
 docker compose up
 ```
 
@@ -60,7 +59,6 @@ docker compose up
 ### Option 1: Full Docker Stack (Recommended for Testing)
 
 ```bash
-cd backend/deployments
 docker compose up
 ```
 
@@ -80,7 +78,6 @@ Use 4 terminal tabs:
 
 #### Terminal 1: Backend Services (Docker)
 ```bash
-cd backend/deployments
 docker compose up app minio
 ```
 
