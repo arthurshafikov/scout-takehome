@@ -1,0 +1,6 @@
+.idea
+.bin
+/main.env*
+!/main.env.example
+todo
+.vscode

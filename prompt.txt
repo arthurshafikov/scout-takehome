@@ -1,0 +1,37 @@
+Please read the README file and create a plan on how we can implement this, step by step
+
+There should be separate folders for backend and web application
+
+Please ask questions if you have any
+
+Backend should use golang and probably something like fasthttp, I've created a boilerplate at ./backend which you should use and stay by it's conventions
+
+We should also implement a greenhouse map, with react and typescript, I probably don't have them installed
+
+Of course we should dockerize the whole application and make sure that there's an instruction on how to run it
+
+Create a Claude.md in backend folder file with the instructions
+Backend (Golang)
+API response structure: always use the APIResponse wrapper {Success, Data, Error, Meta}.
+Errors: return a custom APIError struct with a code and message.
+Logging: use the logrus library; write informative logs for errors.
+Write tests following AAA (Arrange, Act, Assert).
+All constants always live in internal/core/constants.
+All errors always live in internal/core/errors.
+All project-wide helpers always live in internal/core/helpers.
+All models always live in internal/core/models.
+Additional types unrelated to models live in internal/core/types.
+Prefer DTOs as function arguments.
+Use fasthttp as the HTTP server.
+Follow .golangci.yml settings for linting and formatting.
+IDs are always UUIDs, never integers.
+Line length must never exceed 120 characters; format code for readability.
+Always add a blank line before return to visually separate it.
+Errors are always wrapped with fmt.Errorf("context: %w", err) to preserve the call stack.
+Existing code may be edited if it does not conform to these standards, but never delete code that was already written, even if it does not conform. In such cases, edit the code to conform while preserving its functionality.
+The repository layer must be as simple as possible — no business logic, only sqlc calls and mapping DB models to application models. All business logic belongs in services.
+The handler layer must be as simple as possible — no business logic, only parsing incoming data, calling services, and forming responses. All business logic belongs in services.
+No abbreviations for variables, functions, etc. (e.g. use account, not acc), except for universally accepted short forms (id, url, db, ctx, etc.). Prefer householdAccount over hs even if it is longer. Readability over brevity.
+For tests, use mocks from testify/mock, not hand-written mocks. This significantly simplifies writing tests and makes them more readable. Mocks must be in a separate mocks folder inside the folder being tested (e.g. internal/services/household_account/mocks/). Only implement the methods actually used in the tests — do not implement every method of the interface.
+Mocks are generated with the make mocks command, which uses mockery to generate mocks from interfaces. When new folders with interfaces are added, remember to add them to the mock generation command.
+
