@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/repository"
 )
 
@@ -20,8 +21,7 @@ func NewPhotoService(repo *repository.Repository, logger Logger) PhotoService {
 	}
 }
 
-func (s *PhotoServiceImpl) GetPhoto(id string) (*models.Photo, error) {
-	ctx := context.Background()
+func (s *PhotoServiceImpl) GetPhoto(ctx context.Context, id string) (*models.Photo, error) {
 	photo, err := s.repo.GetPhotoByID(ctx, id)
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("Failed to get photo %s: %v", id, err))
@@ -29,4 +29,17 @@ func (s *PhotoServiceImpl) GetPhoto(id string) (*models.Photo, error) {
 	}
 
 	return photo, nil
+}
+
+func (s *PhotoServiceImpl) ListPhotos(
+	ctx context.Context,
+	params types.ListPhotosParams,
+) ([]models.Photo, string, error) {
+	photos, nextToken, err := s.repo.ListPhotos(ctx, params)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("Failed to list photos: %v", err))
+		return nil, "", fmt.Errorf("list photos: %w", err)
+	}
+
+	return photos, nextToken, nil
 }

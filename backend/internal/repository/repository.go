@@ -14,13 +14,6 @@ type PhotoRepository interface {
 	ListPhotos(ctx context.Context, params types.ListPhotosParams) ([]models.Photo, string, error)
 }
 
-type ListPhotosParams struct {
-	Cursor        string
-	Limit         int
-	ClassID       string
-	MinConfidence float64
-}
-
 type Repository struct {
 	PhotoRepository
 	db *sql.DB

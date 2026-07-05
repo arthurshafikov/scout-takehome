@@ -1,8 +1,11 @@
 package services
 
 import (
+	"context"
+
 	"github.com/arthurshafikov/scout-takehome/backend/internal/config"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/repository"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/services/storage"
 )
@@ -13,7 +16,8 @@ type Logger interface {
 }
 
 type PhotoService interface {
-	GetPhoto(id string) (*models.Photo, error)
+	GetPhoto(ctx context.Context, id string) (*models.Photo, error)
+	ListPhotos(ctx context.Context, params types.ListPhotosParams) ([]models.Photo, string, error)
 }
 
 type Services struct {

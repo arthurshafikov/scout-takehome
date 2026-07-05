@@ -23,8 +23,15 @@ func NewHandler(
 }
 
 func (h *Handler) Init(e *gin.Engine) {
-	// TODO: Add photo endpoints
 	h.initHealthCheck(e)
+	
+	// Photos endpoints
+	photos := e.Group("/photos")
+	{
+		photos.GET("", h.listPhotos)
+		photos.GET("/:id", h.getPhoto)
+		photos.POST("/:id/upload-link", h.generateUploadLink)
+	}
 }
 
 func (h *Handler) initHealthCheck(e *gin.Engine) {
