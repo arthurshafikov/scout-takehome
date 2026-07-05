@@ -16,3 +16,10 @@ func (p *Pagination) GetOffset() int {
 
 	return (p.Page - 1) * p.PerPage
 }
+
+type ListPhotosParams struct {
+	Cursor        string
+	Limit         int
+	ClassID       string
+	MinConfidence float64
+}

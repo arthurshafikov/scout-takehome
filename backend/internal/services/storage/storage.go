@@ -1,5 +1,4 @@
 package storage
-package storage
 
 import (
 	"context"
@@ -22,7 +21,6 @@ type StorageService interface {
 	GenerateUploadLink(ctx context.Context, photoID string, contentType string) (*UploadLink, error)
 	GetOriginalURL(ctx context.Context, photoID string) (string, error)
 	ObjectExists(ctx context.Context, photoID string) (bool, error)
-	PutObject(ctx context.Context, objectName string, reader interface{}, size int64, opts ...interface{}) error
 }
 
 type MinIOStorageService struct {
@@ -32,7 +30,7 @@ type MinIOStorageService struct {
 
 func NewMinIOStorageService(config *config.MinIOConfig) (StorageService, error) {
 	client, err := minio.New(config.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticProvider(config.AccessKey, config.SecretKey, ""),
+		Creds:  credentials.NewStaticV4(config.AccessKey, config.SecretKey, ""),
 		Secure: config.UseSSL,
 	})
 	if err != nil {
@@ -52,8 +50,9 @@ func (s *MinIOStorageService) GenerateUploadLink(
 ) (*UploadLink, error) {
 	objectName := fmt.Sprintf("originals/%s", photoID)
 	expiresAt := time.Now().Add(15 * time.Minute)
+	duration := expiresAt.Sub(time.Now())
 
-	presignedURL, err := s.client.PresignedPutObject(ctx, s.bucket, objectName, expiresAt)
+	presignedURL, err := s.client.PresignedPutObject(ctx, s.bucket, objectName, duration)
 	if err != nil {
 		return nil, fmt.Errorf("generate presigned put url: %w", err)
 	}
@@ -68,8 +67,9 @@ func (s *MinIOStorageService) GenerateUploadLink(
 func (s *MinIOStorageService) GetOriginalURL(ctx context.Context, photoID string) (string, error) {
 	objectName := fmt.Sprintf("originals/%s", photoID)
 	expiresAt := time.Now().Add(1 * time.Hour)
+	duration := expiresAt.Sub(time.Now())
 
-	presignedURL, err := s.client.PresignedGetObject(ctx, s.bucket, objectName, expiresAt, nil)
+	presignedURL, err := s.client.PresignedGetObject(ctx, s.bucket, objectName, duration, nil)
 	if err != nil {
 		return "", fmt.Errorf("generate presigned get url: %w", err)
 	}
@@ -91,19 +91,4 @@ func (s *MinIOStorageService) ObjectExists(ctx context.Context, photoID string) 
 	}
 
 	return true, nil
-}
-
-func (s *MinIOStorageService) PutObject(
-	ctx context.Context,
-	objectName string,
-	reader interface{},
-	size int64,
-	opts ...interface{},
-) error {
-	_, err := s.client.PutObject(ctx, s.bucket, objectName, reader.(interface{}), size, minio.PutObjectOptions{})
-	if err != nil {
-		return fmt.Errorf("put object: %w", err)
-	}
-
-	return nil
 }

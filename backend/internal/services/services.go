@@ -22,7 +22,7 @@ type Services struct {
 }
 
 type Deps struct {
-	Repository repository.Repository
+	Repository *repository.Repository
 	Logger     Logger
 	Config     *config.Config
 }

@@ -1,5 +1,4 @@
 package sqlite
-package sqlite
 
 import (
 	"context"
@@ -9,7 +8,7 @@ import (
 	"time"
 
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
-	"github.com/arthurshafikov/scout-takehome/backend/internal/repository"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
 )
 
 type SQLitePhotoRepository struct {
@@ -52,7 +51,6 @@ func (r *SQLitePhotoRepository) GetPhotoByID(
 
 	photo.CapturedAt = parsedTime
 
-	// Fetch predictions for this photo
 	predictions, err := r.getPredictionsForPhoto(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get predictions: %w", err)
@@ -65,7 +63,7 @@ func (r *SQLitePhotoRepository) GetPhotoByID(
 
 func (r *SQLitePhotoRepository) ListPhotos(
 	ctx context.Context,
-	params repository.ListPhotosParams,
+	params types.ListPhotosParams,
 ) ([]models.Photo, string, error) {
 	baseQuery := `
 		SELECT DISTINCT p.id, p.x, p.y, p.h, p.width, p.height, p.captured_at
@@ -89,7 +87,6 @@ func (r *SQLitePhotoRepository) ListPhotos(
 		}
 	}
 
-	// Cursor pagination: (captured_at, id) < (?, ?)
 	if params.Cursor != "" {
 		var cursorData struct {
 			CapturedAt string
@@ -154,7 +151,6 @@ func (r *SQLitePhotoRepository) ListPhotos(
 
 		photo.CapturedAt = parsedTime
 
-		// Fetch predictions for this photo
 		predictions, err := r.getPredictionsForPhoto(ctx, photo.ID)
 		if err != nil {
 			return nil, "", fmt.Errorf("get predictions for photo %s: %w", photo.ID, err)
@@ -168,7 +164,6 @@ func (r *SQLitePhotoRepository) ListPhotos(
 		return nil, "", fmt.Errorf("rows error: %w", err)
 	}
 
-	// Check if there are more results
 	if len(photos) > limit {
 		photos = photos[:limit]
 		lastPhoto := photos[limit-1]

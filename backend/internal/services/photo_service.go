@@ -13,7 +13,7 @@ type PhotoServiceImpl struct {
 	logger Logger
 }
 
-func NewPhotoService(repo repository.Repository, logger Logger) PhotoService {
+func NewPhotoService(repo *repository.Repository, logger Logger) PhotoService {
 	return &PhotoServiceImpl{
 		repo:   repo,
 		logger: logger,

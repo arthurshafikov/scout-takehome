@@ -5,12 +5,13 @@ import (
 	"database/sql"
 
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/repository/sqlite"
 )
 
 type PhotoRepository interface {
 	GetPhotoByID(ctx context.Context, id string) (*models.Photo, error)
-	ListPhotos(ctx context.Context, params ListPhotosParams) ([]models.Photo, string, error)
+	ListPhotos(ctx context.Context, params types.ListPhotosParams) ([]models.Photo, string, error)
 }
 
 type ListPhotosParams struct {
