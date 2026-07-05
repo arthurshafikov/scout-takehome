@@ -34,10 +34,10 @@ FROM base AS dev
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.2/wait /wait
 RUN chmod +x /wait
 CMD /wait && \
-    ${BIN_FILE} -cfgFolder ${CONFIGS_FOLDER} -env /go/src/
+    ${BIN_FILE} -cfgFolder ${CONFIGS_FOLDER}
 
 FROM base AS prod
 
 EXPOSE 8080
 
-CMD ${BIN_FILE} -cfgFolder ${CONFIGS_FOLDER} -env /go/src/
+CMD ${BIN_FILE} -cfgFolder ${CONFIGS_FOLDER}

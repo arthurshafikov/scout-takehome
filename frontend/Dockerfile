@@ -23,44 +23,7 @@ FROM nginx:alpine
 WORKDIR /app
 
 # Copy nginx config
-COPY <<EOF /etc/nginx/conf.d/default.conf
-server {
-    listen 80;
-    server_name _;
-
-    # Gzip compression
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript;
-
-    # SPA routing - fallback to index.html
-    root /app;
-    
-    location / {
-        try_files $uri $uri/ /index.html;
-        expires 1d;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # API proxy to backend
-    location /api/ {
-        proxy_pass http://backend:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-
-    # Health check
-    location /health {
-        access_log off;
-        return 200 "healthy\n";
-        add_header Content-Type text/plain;
-    }
-}
-EOF
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /app

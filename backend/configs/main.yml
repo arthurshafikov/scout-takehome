@@ -1,0 +1,19 @@
+# Scout Backend Configuration
+# Environment variables in .env format
+# All settings have sensible defaults
+
+APP_ENV=local
+APP_DEBUG=true
+APP_PORT=8080
+
+SQLITE_DB_PATH=./dataset/predictions.db
+
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=scout
+MINIO_USE_SSL=false
+
+API_KEY=scout-api-key-12345
+
+THUMBNAIL_CACHE_TTL_HOURS=24

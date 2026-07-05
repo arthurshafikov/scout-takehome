@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -61,7 +60,7 @@ func Run() {
 	}()
 
 	// Connect to SQLite
-	db, err := sql.Open("sqlite", fmt.Sprintf("file:%s?mode=ro&_journal_mode=WAL", config.SQLiteConfig.DBPath))
+	db, err := sql.Open("sqlite", config.SQLiteConfig.DBPath)
 	if err != nil {
 		logger.Fatalf("Failed to open SQLite database: %v", err)
 
