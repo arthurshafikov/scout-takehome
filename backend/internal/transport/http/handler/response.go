@@ -9,10 +9,10 @@ import (
 )
 
 type APIResponse[T any] struct {
-	Success bool        `json:"success"`
-	Data    T           `json:"data,omitempty"`
-	Error   *ErrorBody  `json:"error,omitempty"`
-	TraceID string      `json:"trace_id,omitempty"`
+	Success bool       `json:"success"`
+	Data    T          `json:"data,omitempty"`
+	Error   *ErrorBody `json:"error,omitempty"`
+	TraceID string     `json:"trace_id,omitempty"`
 }
 
 type ErrorBody struct {

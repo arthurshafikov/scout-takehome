@@ -119,4 +119,3 @@ func Run() {
 		logger.Error(err)
 	}
 }
-

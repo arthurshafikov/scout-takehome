@@ -47,7 +47,7 @@ func (h *Handler) Init(e *gin.Engine) {
 func (h *Handler) getMetrics(c *gin.Context) {
 	// TODO: Implement metrics endpoint using Prometheus
 	c.JSON(200, gin.H{
-		"status": "ok",
+		"status":  "ok",
 		"message": "Metrics endpoint - TODO: implement Prometheus metrics",
 	})
 }
