@@ -6,6 +6,7 @@ import (
 	"flag"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	configPkg "github.com/arthurshafikov/scout-takehome/backend/internal/config"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/repository"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/services"
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services/metrics"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/services/thumbnail"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/transport/http"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/transport/http/handler"
@@ -77,6 +79,9 @@ func Run() {
 
 	logger.Info("Connected to SQLite database")
 
+	// Initialize metrics
+	m := metrics.NewMetrics()
+
 	repo := repository.NewRepository(db)
 
 	svc, err := services.NewServices(services.Deps{
@@ -98,11 +103,13 @@ func Run() {
 		return
 	}
 
-	thumbnailGen := thumbnail.NewThumbnailGenerator(minioClient, config.MinIOConfig.Bucket)
+	// Dataset path is the directory containing the database
+	datasetPath := filepath.Dir(config.SQLiteConfig.DBPath)
+	thumbnailGen := thumbnail.NewThumbnailGenerator(minioClient, config.MinIOConfig.Bucket, datasetPath, m)
 
-	h := handler.NewHandler(ctx, svc, thumbnailGen)
+	h := handler.NewHandler(ctx, svc, thumbnailGen, m)
 
-	server := http.NewServer(logger, h, config.App.Debug)
+	server := http.NewServer(logger, h, config.App.Debug, m)
 
 	g.Go(func() error {
 		defer func() {

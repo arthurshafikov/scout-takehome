@@ -3,24 +3,24 @@
  * Constructs URLs for thumbnail images from the backend
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
-
 /**
  * Get thumbnail URL for a photo
  * Format: GET /api/thumbnails/{photoId}
  * Returns binary image data (JPEG or PNG)
+ * Uses relative path to work through nginx proxy in Docker
  */
 export function getThumbnailUrl(photoId: string): string {
-  return `${API_URL}/api/thumbnails/${photoId}`
+  return `/api/thumbnails/${photoId}`
 }
 
 /**
  * Get original photo URL
  * Format: GET /api/photos/{photoId}/image
  * Can be served directly or pre-signed from storage
+ * Uses relative path to work through nginx proxy in Docker
  */
 export function getPhotoUrl(photoId: string): string {
-  return `${API_URL}/api/photos/${photoId}/image`
+  return `/api/photos/${photoId}/image`
 }
 
 /**

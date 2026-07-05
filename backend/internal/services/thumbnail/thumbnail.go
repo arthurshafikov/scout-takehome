@@ -7,15 +7,22 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services/metrics"
 	"github.com/disintegration/imaging"
 	"github.com/minio/minio-go/v7"
+	"github.com/sirupsen/logrus"
 )
 
 type ThumbnailGenerator struct {
-	client *minio.Client
-	bucket string
+	client      *minio.Client
+	bucket      string
+	datasetPath string
+	logger      *logrus.Logger
+	metrics     *metrics.Metrics
 }
 
 type ThumbnailOptions struct {
@@ -33,10 +40,15 @@ func DefaultOptions() ThumbnailOptions {
 	}
 }
 
-func NewThumbnailGenerator(client *minio.Client, bucket string) *ThumbnailGenerator {
+func NewThumbnailGenerator(client *minio.Client, bucket, datasetPath string, m *metrics.Metrics) *ThumbnailGenerator {
+	logger := logrus.New()
+	logger.SetLevel(logrus.DebugLevel)
 	return &ThumbnailGenerator{
-		client: client,
-		bucket: bucket,
+		client:      client,
+		bucket:      bucket,
+		datasetPath: datasetPath,
+		logger:      logger,
+		metrics:     m,
 	}
 }
 
@@ -50,8 +62,18 @@ func (tg *ThumbnailGenerator) Generate(
 	cacheKey := tg.cacheKey(photoID, opts)
 	cached, err := tg.getFromCache(ctx, cacheKey)
 	if err == nil {
+		tg.logger.Debugf("Cache HIT: %s", cacheKey)
+		if tg.metrics != nil {
+			tg.metrics.RecordThumbnailCacheHit()
+		}
 		return cached, nil
 	}
+	tg.logger.Debugf("Cache MISS: %s (%v)", cacheKey, err)
+	if tg.metrics != nil {
+		tg.metrics.RecordThumbnailCacheMiss()
+	}
+
+	start := time.Now()
 
 	// Download original
 	original, err := tg.downloadOriginal(ctx, photoID)
@@ -75,8 +97,17 @@ func (tg *ThumbnailGenerator) Generate(
 		return nil, fmt.Errorf("encode thumbnail: %w", err)
 	}
 
-	// Cache it (best effort, don't fail if caching fails)
-	_ = tg.cacheToMinIO(ctx, cacheKey, thumbnail.Bytes())
+	duration := time.Since(start).Seconds()
+	if tg.metrics != nil {
+		tg.metrics.RecordThumbnailGenerationTime(duration)
+	}
+
+	// Cache it (best effort, log errors but don't fail)
+	if err := tg.cacheToMinIO(ctx, cacheKey, thumbnail.Bytes()); err != nil {
+		tg.logger.Warnf("Failed to cache thumbnail to MinIO: %v", err)
+	} else {
+		tg.logger.Debugf("Successfully cached thumbnail: %s", cacheKey)
+	}
 
 	return thumbnail.Bytes(), nil
 }
@@ -87,6 +118,17 @@ func (tg *ThumbnailGenerator) cacheKey(photoID string, opts ThumbnailOptions) st
 }
 
 func (tg *ThumbnailGenerator) downloadOriginal(ctx context.Context, photoID string) ([]byte, error) {
+	// Try to read from local filesystem first (dataset/images/{photoID}.jpg)
+	if tg.datasetPath != "" {
+		localPath := filepath.Join(tg.datasetPath, "images", photoID+".jpg")
+		data, err := os.ReadFile(localPath)
+		if err == nil {
+			return data, nil
+		}
+		// If local file not found, continue to try MinIO
+	}
+
+	// Fallback to MinIO for cloud-based originals
 	objectName := fmt.Sprintf("originals/%s", photoID)
 
 	obj, err := tg.client.GetObject(ctx, tg.bucket, objectName, minio.GetObjectOptions{})
@@ -95,12 +137,14 @@ func (tg *ThumbnailGenerator) downloadOriginal(ctx context.Context, photoID stri
 	}
 	defer obj.Close()
 
-	data, err := io.ReadAll(obj)
+	// Read all data from MinIO object
+	buf := &bytes.Buffer{}
+	_, err = buf.ReadFrom(obj)
 	if err != nil {
 		return nil, fmt.Errorf("read object: %w", err)
 	}
 
-	return data, nil
+	return buf.Bytes(), nil
 }
 
 func (tg *ThumbnailGenerator) getFromCache(ctx context.Context, cacheKey string) ([]byte, error) {
@@ -125,10 +169,6 @@ func (tg *ThumbnailGenerator) getFromCache(ctx context.Context, cacheKey string)
 func (tg *ThumbnailGenerator) cacheToMinIO(ctx context.Context, cacheKey string, data []byte) error {
 	_, err := tg.client.PutObject(ctx, tg.bucket, cacheKey, bytes.NewReader(data), int64(len(data)), minio.PutObjectOptions{
 		ContentType: "image/jpeg",
-		// Cache for 24 hours
-		UserMetadata: map[string]string{
-			"Cache-Control": "max-age=86400",
-		},
 	})
 	return err
 }

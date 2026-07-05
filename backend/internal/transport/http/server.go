@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/arthurshafikov/scout-takehome/backend/internal/services/metrics"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
 )
@@ -25,9 +27,10 @@ type Server struct {
 	httpSrv *http.Server
 	handler Handler
 	Engine  *gin.Engine
+	metrics *metrics.Metrics
 }
 
-func NewServer(logger Logger, handler Handler, debug bool) *Server {
+func NewServer(logger Logger, handler Handler, debug bool, m *metrics.Metrics) *Server {
 	if !debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -36,12 +39,16 @@ func NewServer(logger Logger, handler Handler, debug bool) *Server {
 		logger:  logger,
 		handler: handler,
 		Engine:  gin.Default(),
+		metrics: m,
 	}
 }
 
 func (s *Server) Serve(ctx context.Context, g *errgroup.Group, port string) error {
-	// Add CORS middleware
+	// Add middlewares
 	s.Engine.Use(corsMiddleware())
+	if s.metrics != nil {
+		s.Engine.Use(s.metricsMiddleware())
+	}
 
 	s.handler.Init(s.Engine)
 
@@ -86,5 +93,27 @@ func corsMiddleware() gin.HandlerFunc {
 		}
 
 		c.Next()
+	}
+}
+
+// metricsMiddleware records HTTP request metrics
+func (s *Server) metricsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+
+		c.Next()
+
+		endpoint := c.Request.URL.Path
+		method := c.Request.Method
+		status := strconv.Itoa(c.Writer.Status())
+		duration := time.Since(start).Seconds()
+
+		// Record HTTP request metrics
+		s.metrics.RecordHTTPRequest(endpoint, method, status, duration)
+
+		// Record errors separately
+		if c.Writer.Status() >= 400 {
+			s.metrics.RecordHTTPError(endpoint, status)
+		}
 	}
 }
