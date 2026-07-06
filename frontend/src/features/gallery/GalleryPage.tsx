@@ -5,6 +5,11 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import { setCursor } from '@/features/filters/filtersSlice'
 import { useListPhotosQuery } from '@/services/api'
 import type { Photo } from '@/types/api'
+import {
+  GALLERY_FETCH_LIMIT,
+  GALLERY_REFETCH_INTERVAL_MS,
+  INFINITE_SCROLL_THRESHOLD,
+} from '@/constants/greenhouse'
 
 /**
  * Gallery page with infinite scroll pagination
@@ -25,12 +30,12 @@ const GalleryPage: FC = () => {
   const { data, isLoading, isFetching } = useListPhotosQuery(
     {
       cursor: cursor || undefined,
-      limit: 50,
+      limit: GALLERY_FETCH_LIMIT,
       class_id: selectedClass || undefined,
       min_confidence: minConfidence > 0 ? minConfidence : undefined,
     },
     {
-      refetchOnMountOrArgChange: 60,
+      refetchOnMountOrArgChange: GALLERY_REFETCH_INTERVAL_MS,
     },
   )
 
@@ -46,7 +51,7 @@ const GalleryPage: FC = () => {
           dispatch(setCursor(data.nextCursor))
         }
       },
-      { threshold: 0.1 },
+      { threshold: INFINITE_SCROLL_THRESHOLD },
     )
 
     if (observerTarget.current) {
@@ -66,12 +71,24 @@ const GalleryPage: FC = () => {
     setTimeout(() => setSelectedPhoto(null), 300)
   }, [])
 
-  // Calculate distance between two points (meters)
+  /**
+   * Calculate Euclidean distance between two points
+   * @param x1 - First point X coordinate (meters)
+   * @param y1 - First point Y coordinate (meters)
+   * @param x2 - Second point X coordinate (meters)
+   * @param y2 - Second point Y coordinate (meters)
+   * @returns Distance in meters
+   */
   const calculateDistance = (x1: number, y1: number, x2: number, y2: number): number => {
     return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
   }
 
-  // Filter photos by location proximity
+  /**
+   * Filter photos by location proximity radius
+   * Returns all photos if no location center is set
+   * @param photosToFilter - Array of photos to filter
+   * @returns Photos within proximity radius of selected location
+   */
   const applyLocationFilter = (photosToFilter: Photo[]): Photo[] => {
     if (!locationCenter) return photosToFilter
 

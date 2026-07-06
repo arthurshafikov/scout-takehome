@@ -3,6 +3,7 @@ import GalleryPage from '@/features/gallery/GalleryPage'
 import FilterPanel from '@/features/filters/FilterPanel'
 import MapPanel from '@/features/map/MapPanel'
 import MapLegend from '@/features/map/MapLegend'
+import { ErrorBoundary } from './ErrorBoundary'
 
 type TabType = 'gallery' | 'map'
 
@@ -59,7 +60,9 @@ export default function AppLayout() {
 
             {/* Gallery main content */}
             <div className="lg:col-span-3">
-              <GalleryPage />
+              <ErrorBoundary>
+                <GalleryPage />
+              </ErrorBoundary>
             </div>
           </div>
         )}
@@ -67,7 +70,9 @@ export default function AppLayout() {
         {/* Map view */}
         {activeTab === 'map' && (
           <div className="space-y-6">
-            <MapPanel />
+            <ErrorBoundary>
+              <MapPanel />
+            </ErrorBoundary>
             <MapLegend />
           </div>
         )}

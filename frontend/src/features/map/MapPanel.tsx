@@ -7,6 +7,18 @@ import { setLocationCenter } from '@/features/filters/filtersSlice'
 import type { RootState } from '@/store'
 import { PEST_CLASS_RGB, PEST_CLASS_LABELS } from '@/utils/classColors'
 import type { Photo, Prediction } from '@/types/api'
+import {
+  GREENHOUSE_WIDTH,
+  GREENHOUSE_HEIGHT,
+  PIXEL_SCALE,
+  PROXIMITY_RADIUS,
+  MIN_ZOOM,
+  MAX_ZOOM,
+  ZOOM_IN_FACTOR,
+  ZOOM_OUT_FACTOR,
+  MAP_FETCH_LIMIT,
+  MAP_REFETCH_INTERVAL_MS,
+} from '@/constants/greenhouse'
 
 /**
  * Interactive Konva.js map showing greenhouse layout (40x40m)
@@ -20,25 +32,23 @@ const MapPanel: FC = () => {
   const [hoveredPhoto, setHoveredPhoto] = useState<Photo | null>(null)
   const [scale, setScale] = useState(1)
 
-  // Fetch photos for map (independent cache, limit 200)
+  // Fetch photos for map (independent cache, up to MAP_FETCH_LIMIT)
   const { data: mapData, isLoading } = useListPhotosQuery(
     {
-      limit: 200,
+      limit: MAP_FETCH_LIMIT,
     },
     {
-      refetchOnMountOrArgChange: 300, // Update less frequently than gallery
+      refetchOnMountOrArgChange: MAP_REFETCH_INTERVAL_MS,
     },
   )
 
   const photos = mapData?.items || []
 
-  // Grid constants (greenhouse: 40x40m)
-  const GREENHOUSE_WIDTH = 40
-  const GREENHOUSE_HEIGHT = 40
-  const PIXEL_SCALE = 40 // pixels per meter
-  const PROXIMITY_RADIUS = 5 // meters
-
-  // Get highest confidence prediction for a photo
+  /**
+   * Get highest confidence prediction for a photo
+   * @param photo - Photo object with predictions array
+   * @returns Prediction with highest confidence, or null if no predictions
+   */
   const getTopPrediction = (photo: Photo): Prediction | null => {
     if (photo.predictions.length === 0) return null
     return photo.predictions.reduce((prev, current) =>
@@ -46,7 +56,10 @@ const MapPanel: FC = () => {
     )
   }
 
-  // Handle map pan and zoom
+  /**
+   * Handle mouse wheel zoom
+   * Zooms in/out around pointer position with MIN_ZOOM to MAX_ZOOM constraints
+   */
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault()
 
@@ -57,8 +70,8 @@ const MapPanel: FC = () => {
     const pointer = stage.getPointerPosition()
     if (!pointer) return
 
-    const newScale = e.evt.deltaY > 0 ? oldScale * 0.95 : oldScale * 1.05
-    setScale(Math.max(0.5, Math.min(newScale, 5)))
+    const newScale = e.evt.deltaY > 0 ? oldScale * ZOOM_OUT_FACTOR : oldScale * ZOOM_IN_FACTOR
+    setScale(Math.max(MIN_ZOOM, Math.min(newScale, MAX_ZOOM)))
 
     const dx = (pointer.x / oldScale - pointer.x / newScale) * oldScale
     const dy = (pointer.y / oldScale - pointer.y / newScale) * oldScale
@@ -69,7 +82,12 @@ const MapPanel: FC = () => {
     })
   }
 
-  // Handle click on map to filter by proximity
+  /**
+   * Handle click on map to set location-based filter
+   * Converts pixel coordinates to greenhouse meters, accounting for zoom
+   * Dispatches setLocationCenter with PROXIMITY_RADIUS for filtering
+   * Ignores clicks on photo circles (only responds to stage background)
+   */
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     // Only handle clicks on the stage background, not on photo circles
     if (e.target !== stageRef.current) {
