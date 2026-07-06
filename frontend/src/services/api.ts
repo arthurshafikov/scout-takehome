@@ -13,7 +13,7 @@ export const apiSlice = createApi({
     prepareHeaders: (headers) => {
       const apiKey = import.meta.env.VITE_API_KEY
       if (apiKey) {
-        headers.set('Authorization', `Bearer ${apiKey}`)
+        headers.set('X-API-Key', apiKey)
       }
       return headers
     },

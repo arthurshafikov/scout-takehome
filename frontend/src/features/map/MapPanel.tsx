@@ -4,7 +4,7 @@ import type Konva from 'konva'
 import { useDispatch, useSelector } from 'react-redux'
 import { useListPhotosQuery } from '@/services/api'
 import { setLocationCenter } from '@/features/filters/filtersSlice'
-import type { RootState } from '@/store'
+import type { RootState } from '@/app/store'
 import { PEST_CLASS_RGB, PEST_CLASS_LABELS } from '@/utils/classColors'
 import type { Photo, Prediction } from '@/types/api'
 import {

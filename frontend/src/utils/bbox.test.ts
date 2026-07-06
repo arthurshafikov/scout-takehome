@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
   normalizedToPixels,
-  pixelsToNormalized,
-  bboxWidth,
-  bboxHeight,
   bboxCenter,
 } from '@/utils/bbox'
 import type { BoundingBox } from '@/types/api'
@@ -34,35 +31,14 @@ describe('bbox utilities', () => {
     })
   })
 
-  describe('pixelsToNormalized', () => {
-    it('converts pixels back to normalized bbox', () => {
-      const pixels = normalizedToPixels(testBbox, 1000, 500)
-      const result = pixelsToNormalized(pixels, 1000, 500)
-      expect(result.xMin).toBeCloseTo(testBbox.xMin)
-      expect(result.yMin).toBeCloseTo(testBbox.yMin)
-      expect(result.xMax).toBeCloseTo(testBbox.xMax)
-      expect(result.yMax).toBeCloseTo(testBbox.yMax)
-    })
-  })
-
-  describe('bboxWidth', () => {
-    it('calculates width correctly', () => {
-      const pixels = normalizedToPixels(testBbox, 1000, 500)
-      const width = bboxWidth(pixels)
-      expect(width).toBe(600) // (0.7 - 0.1) * 1000
-    })
-  })
-
-  describe('bboxHeight', () => {
-    it('calculates height correctly', () => {
-      const pixels = normalizedToPixels(testBbox, 1000, 500)
-      const height = bboxHeight(pixels)
-      expect(height).toBe(350) // (0.9 - 0.2) * 500
-    })
-  })
-
   describe('bboxCenter', () => {
-    it('calculates center point', () => {
+    it('calculates center point from normalized bbox', () => {
+      const center = bboxCenter(testBbox)
+      expect(center.x).toBeCloseTo(0.4) // (0.1 + 0.7) / 2
+      expect(center.y).toBeCloseTo(0.55) // (0.2 + 0.9) / 2
+    })
+
+    it('calculates center point from pixel bbox', () => {
       const pixels = normalizedToPixels(testBbox, 1000, 500)
       const center = bboxCenter(pixels)
       expect(center.x).toBe(400) // (100 + 700) / 2

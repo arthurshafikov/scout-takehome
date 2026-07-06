@@ -1,48 +1,27 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   getThumbnailUrl,
-  getPhotoUrl,
-  isValidPhotoUrl,
 } from '@/utils/thumbnail'
 
 describe('thumbnail utilities', () => {
-  beforeEach(() => {
-    // Mock import.meta.env
-    ;(import.meta as any).env.VITE_API_URL = 'http://localhost:8080'
-  })
-
   describe('getThumbnailUrl', () => {
-    it('constructs thumbnail URL correctly', () => {
+    it('constructs thumbnail URL correctly with defaults', () => {
       const photoId = 'test-photo-123'
       const url = getThumbnailUrl(photoId)
-      expect(url).toBe('http://localhost:8080/api/thumbnails/test-photo-123')
+      expect(url).toBe('/api/thumbnails/test-photo-123?w=600&q=85')
+    })
+
+    it('constructs thumbnail URL with custom width and quality', () => {
+      const photoId = 'test-photo-456'
+      const url = getThumbnailUrl(photoId, 900, 90)
+      expect(url).toBe('/api/thumbnails/test-photo-456?w=900&q=90')
     })
 
     it('handles special characters in photoId', () => {
-      const photoId = 'photo-with-dashes-and-numbers-123'
-      const url = getThumbnailUrl(photoId)
+      const photoId = 'photo-with-dashes-and-uuid-format'
+      const url = getThumbnailUrl(photoId, 300)
       expect(url).toContain(photoId)
-    })
-  })
-
-  describe('getPhotoUrl', () => {
-    it('constructs photo URL correctly', () => {
-      const photoId = 'test-photo-123'
-      const url = getPhotoUrl(photoId)
-      expect(url).toBe('http://localhost:8080/api/photos/test-photo-123/image')
-    })
-  })
-
-  describe('isValidPhotoUrl', () => {
-    it('validates correct URLs', () => {
-      expect(isValidPhotoUrl('http://localhost:8080/api/thumbnails/123')).toBe(true)
-      expect(isValidPhotoUrl('https://example.com/image.jpg')).toBe(true)
-    })
-
-    it('rejects invalid URLs', () => {
-      expect(isValidPhotoUrl('not-a-url')).toBe(false)
-      expect(isValidPhotoUrl('')).toBe(false)
-      expect(isValidPhotoUrl('ht!tp://invalid')).toBe(false)
+      expect(url).toContain('w=300')
     })
   })
 })

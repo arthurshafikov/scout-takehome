@@ -82,6 +82,7 @@ describe('filtersSlice', () => {
         selectedClass: 'thrips',
         minConfidence: 0.8,
         cursor: 'page-2',
+        locationCenter: null,
       }
       const state = filtersReducer(dirtyState, resetFilters())
       expect(state).toEqual(initialState)
