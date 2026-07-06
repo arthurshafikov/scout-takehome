@@ -14,12 +14,11 @@ const (
 )
 
 type Config struct {
-	App              `mapstructure:",squash"`
-	SQLiteConfig     `mapstructure:",squash"`
-	MinIOConfig      `mapstructure:",squash"`
-	APIKeyConfig     `mapstructure:",squash"`
-	ThumbnailConfig  `mapstructure:",squash"`
-	MaxEventHandlerGoroutines int
+	App             `mapstructure:",squash"`
+	SQLiteConfig    `mapstructure:",squash"`
+	MinIOConfig     `mapstructure:",squash"`
+	APIKeyConfig    `mapstructure:",squash"`
+	ThumbnailConfig `mapstructure:",squash"`
 }
 
 type App struct {
@@ -49,9 +48,7 @@ type ThumbnailConfig struct {
 }
 
 func NewConfig(envFolderPath, configFolder string) *Config {
-	config := &Config{
-		MaxEventHandlerGoroutines: 10,
-	}
+	config := &Config{}
 
 	if envFolderPath == "" {
 		config.readEnvVarsFromSystem()

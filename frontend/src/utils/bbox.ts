@@ -19,36 +19,6 @@ export function normalizedToPixels(
 }
 
 /**
- * Transform pixel coordinates to normalized BBox [0,1]
- */
-export function pixelsToNormalized(
-  bbox: BoundingBox,
-  width: number,
-  height: number,
-): BoundingBox {
-  return {
-    xMin: bbox.xMin / width,
-    yMin: bbox.yMin / height,
-    xMax: bbox.xMax / width,
-    yMax: bbox.yMax / height,
-  }
-}
-
-/**
- * Get bounding box width in pixels
- */
-export function bboxWidth(bbox: BoundingBox): number {
-  return bbox.xMax - bbox.xMin
-}
-
-/**
- * Get bounding box height in pixels
- */
-export function bboxHeight(bbox: BoundingBox): number {
-  return bbox.yMax - bbox.yMin
-}
-
-/**
  * Get center point of bounding box
  */
 export function bboxCenter(bbox: BoundingBox): { x: number; y: number } {

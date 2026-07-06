@@ -1,1 +1,4 @@
-MaxEventHandlerGoroutines: 10
+# Application configuration
+# All configuration is loaded from environment variables
+# See main.env.example for available options
+

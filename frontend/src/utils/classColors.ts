@@ -36,15 +36,3 @@ export const PEST_CLASS_LABELS: Record<PestClass, string> = {
   thrips: 'Thrips',
   spider_mites: 'Spider Mites',
 }
-
-export function getColorClass(pestClass: PestClass): string {
-  return PEST_CLASS_COLORS[pestClass] || 'bg-gray-200'
-}
-
-export function getColorRGB(pestClass: PestClass): [number, number, number] {
-  return PEST_CLASS_RGB[pestClass] || [128, 128, 128]
-}
-
-export function getLabel(pestClass: PestClass): string {
-  return PEST_CLASS_LABELS[pestClass] || pestClass
-}

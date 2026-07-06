@@ -12,6 +12,7 @@ describe('filtersSlice', () => {
     selectedClass: null,
     minConfidence: 0,
     cursor: null,
+    locationCenter: null,
   }
 
   it('has correct initial state', () => {
