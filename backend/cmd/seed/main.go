@@ -91,7 +91,11 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Warning: failed to open file %s: %v\n", path, err)
 			return nil
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: failed to close file %s: %v\n", path, err)
+			}
+		}()
 
 		fileInfo, err := file.Stat()
 		if err != nil {

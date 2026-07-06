@@ -57,36 +57,36 @@ func NewConfig(envFolderPath, configFolder string) *Config {
 	}
 
 	// Validate required fields
-	if config.SQLiteConfig.DBPath == "" {
+	if config.DBPath == "" {
 		log.Fatalln("SQLITE_DB_PATH environment variable is required")
 	}
-	if config.APIKeyConfig.APIKey == "" {
+	if config.APIKey == "" {
 		log.Fatalln("API_KEY environment variable is required")
 	}
-	if config.MinIOConfig.Endpoint == "" {
+	if config.Endpoint == "" {
 		log.Fatalln("MINIO_ENDPOINT environment variable is required")
 	}
 
 	// Default values
-	if config.App.Env == "" {
-		config.App.Env = AppProductionEnv
+	if config.Env == "" {
+		config.Env = AppProductionEnv
 	}
-	if config.App.Port == "" {
-		config.App.Port = "8080"
+	if config.Port == "" {
+		config.Port = "8080"
 	}
-	if config.MinIOConfig.Bucket == "" {
-		config.MinIOConfig.Bucket = "scout"
+	if config.Bucket == "" {
+		config.Bucket = "scout"
 	}
-	if config.ThumbnailConfig.CacheTTLHours == 0 {
-		config.ThumbnailConfig.CacheTTLHours = 24
+	if config.CacheTTLHours == 0 {
+		config.CacheTTLHours = 24
 	}
 
-	switch config.App.Env {
+	switch config.Env {
 	case AppLocalEnv:
 	case AppProductionEnv:
 	case AppTestingEnv:
 	default:
-		log.Fatalln("unknown APP_ENV: " + config.App.Env)
+		log.Fatalln("unknown APP_ENV: " + config.Env)
 	}
 
 	return config
@@ -105,14 +105,14 @@ func (c *Config) readEnvVarsFromFile(envFolderPath string) {
 }
 
 func (c *Config) readEnvVarsFromSystem() {
-	c.App.Debug = os.Getenv("APP_DEBUG") == "true"
-	c.App.Env = os.Getenv("APP_ENV")
-	c.App.Port = os.Getenv("APP_PORT")
-	c.SQLiteConfig.DBPath = os.Getenv("SQLITE_DB_PATH")
-	c.APIKeyConfig.APIKey = os.Getenv("API_KEY")
-	c.MinIOConfig.Endpoint = os.Getenv("MINIO_ENDPOINT")
-	c.MinIOConfig.AccessKey = os.Getenv("MINIO_ACCESS_KEY")
-	c.MinIOConfig.SecretKey = os.Getenv("MINIO_SECRET_KEY")
-	c.MinIOConfig.Bucket = os.Getenv("MINIO_BUCKET")
-	c.MinIOConfig.UseSSL = os.Getenv("MINIO_USE_SSL") == "true"
+	c.Debug = os.Getenv("APP_DEBUG") == "true"
+	c.Env = os.Getenv("APP_ENV")
+	c.Port = os.Getenv("APP_PORT")
+	c.DBPath = os.Getenv("SQLITE_DB_PATH")
+	c.APIKey = os.Getenv("API_KEY")
+	c.Endpoint = os.Getenv("MINIO_ENDPOINT")
+	c.AccessKey = os.Getenv("MINIO_ACCESS_KEY")
+	c.SecretKey = os.Getenv("MINIO_SECRET_KEY")
+	c.Bucket = os.Getenv("MINIO_BUCKET")
+	c.UseSSL = os.Getenv("MINIO_USE_SSL") == "true"
 }

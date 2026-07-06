@@ -135,9 +135,10 @@ func (tg *ThumbnailGenerator) downloadOriginal(ctx context.Context, photoID stri
 	if err != nil {
 		return nil, fmt.Errorf("get object: %w", err)
 	}
-	defer obj.Close()
+	defer func() {
+		_ = obj.Close() // ignore error
+	}()
 
-	// Read all data from MinIO object
 	buf := &bytes.Buffer{}
 	_, err = buf.ReadFrom(obj)
 	if err != nil {
@@ -152,7 +153,9 @@ func (tg *ThumbnailGenerator) getFromCache(ctx context.Context, cacheKey string)
 	if err != nil {
 		return nil, err
 	}
-	defer obj.Close()
+	defer func() {
+		_ = obj.Close() // ignore close errors
+	}()
 
 	data, err := io.ReadAll(obj)
 	if err != nil {
@@ -176,7 +179,7 @@ func (tg *ThumbnailGenerator) cacheToMinIO(ctx context.Context, cacheKey string,
 // GetPresignedURL returns a presigned URL for thumbnail
 func (tg *ThumbnailGenerator) GetPresignedURL(ctx context.Context, cacheKey string) (string, error) {
 	expiresAt := time.Now().Add(1 * time.Hour)
-	duration := expiresAt.Sub(time.Now())
+	duration := time.Until(expiresAt)
 
 	presignedURL, err := tg.client.PresignedGetObject(ctx, tg.bucket, cacheKey, duration, nil)
 	if err != nil {

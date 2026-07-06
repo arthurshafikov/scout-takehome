@@ -216,7 +216,9 @@ func isBackendHealthy(ctx context.Context) bool {
 	if err != nil {
 		return false
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	return resp.StatusCode == 200
 }
@@ -242,7 +244,9 @@ func listPhotos(ctx context.Context, cursor string, limit int, classID string, m
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != 200 {
 		body, _ := io.ReadAll(resp.Body)
@@ -273,7 +277,9 @@ func getPhoto(ctx context.Context, photoID string) (*Photo, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != 200 {
 		body, _ := io.ReadAll(resp.Body)

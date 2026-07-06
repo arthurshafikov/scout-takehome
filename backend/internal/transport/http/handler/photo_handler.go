@@ -45,7 +45,7 @@ func (h *Handler) listPhotos(c *gin.Context) {
 		limit = 10
 	}
 
-	var minConfidence float64 = 0.0
+	var minConfidence = 0.0
 	if minConfidenceStr != "" {
 		conf, err := strconv.ParseFloat(minConfidenceStr, 64)
 		if err != nil {
@@ -63,7 +63,7 @@ func (h *Handler) listPhotos(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	photos, nextToken, err := h.services.PhotoService.ListPhotos(ctx, types.ListPhotosParams{
+	photos, nextToken, err := h.services.ListPhotos(ctx, types.ListPhotosParams{
 		Cursor:        cursor,
 		Limit:         limit,
 		ClassID:       classID,
@@ -76,7 +76,7 @@ func (h *Handler) listPhotos(c *gin.Context) {
 
 	// Enrich photos with original URLs
 	for i := range photos {
-		url, err := h.services.StorageService.GetOriginalURL(ctx, photos[i].ID)
+		url, err := h.services.GetOriginalURL(ctx, photos[i].ID)
 		if err != nil {
 			// Log but don't fail - continue with nil URL
 			continue
@@ -107,14 +107,14 @@ func (h *Handler) getPhoto(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	photo, err := h.services.PhotoService.GetPhoto(ctx, photoID)
+	photo, err := h.services.GetPhoto(ctx, photoID)
 	if err != nil {
 		errorResponse(c, err, traceID)
 		return
 	}
 
 	// Enrich with original URL
-	url, err := h.services.StorageService.GetOriginalURL(ctx, photo.ID)
+	url, err := h.services.GetOriginalURL(ctx, photo.ID)
 	if err == nil {
 		photo.OriginalURL = url
 	}
@@ -165,7 +165,7 @@ func (h *Handler) generateUploadLink(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	uploadLink, err := h.services.StorageService.GenerateUploadLink(ctx, photoID, req.ContentType)
+	uploadLink, err := h.services.GenerateUploadLink(ctx, photoID, req.ContentType)
 	if err != nil {
 		errorResponse(c, err, traceID)
 		return

@@ -47,7 +47,7 @@ func Run() {
 	logger.SetReportCaller(true)
 	logger.SetOutput(os.Stdout)
 
-	if config.App.Debug {
+	if config.Debug {
 		logger.SetLevel(logrus.DebugLevel)
 	} else {
 		logger.SetLevel(logrus.InfoLevel)
@@ -62,14 +62,18 @@ func Run() {
 	}()
 
 	// Connect to SQLite
-	db, err := sql.Open("sqlite", config.SQLiteConfig.DBPath)
+	db, err := sql.Open("sqlite", config.DBPath)
 	if err != nil {
 		logger.Fatalf("Failed to open SQLite database: %v", err)
 
 		return
 	}
 
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Warnf("Failed to close database: %v", err)
+		}
+	}()
 
 	if err := db.PingContext(ctx); err != nil {
 		logger.Fatalf("Failed to connect to SQLite database: %v", err)
@@ -96,7 +100,7 @@ func Run() {
 	}
 
 	// Initialize thumbnail generator
-	minioClient, err := svc.StorageService.GetMinIOClient()
+	minioClient, err := svc.GetMinIOClient()
 	if err != nil {
 		logger.Fatalf("Failed to get MinIO client for thumbnails: %v", err)
 
@@ -104,12 +108,12 @@ func Run() {
 	}
 
 	// Dataset path is the directory containing the database
-	datasetPath := filepath.Dir(config.SQLiteConfig.DBPath)
-	thumbnailGen := thumbnail.NewThumbnailGenerator(minioClient, config.MinIOConfig.Bucket, datasetPath, m)
+	datasetPath := filepath.Dir(config.DBPath)
+	thumbnailGen := thumbnail.NewThumbnailGenerator(minioClient, config.Bucket, datasetPath, m)
 
 	h := handler.NewHandler(ctx, svc, thumbnailGen, m)
 
-	server := http.NewServer(logger, h, config.App.Debug, m)
+	server := http.NewServer(logger, h, config.Debug, m)
 
 	g.Go(func() error {
 		defer func() {
@@ -118,7 +122,7 @@ func Run() {
 			}
 		}()
 
-		return server.Serve(ctx, g, config.App.Port)
+			return server.Serve(ctx, g, config.Port)
 	})
 
 	if err := g.Wait(); err != nil {

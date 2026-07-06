@@ -123,7 +123,9 @@ func (r *SQLitePhotoRepository) ListPhotos(
 		return nil, "", fmt.Errorf("query photos: %w", err)
 	}
 
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close() // ignore close errors
+	}()
 
 	photos := []models.Photo{}
 	var nextCursor string
@@ -200,7 +202,9 @@ func (r *SQLitePhotoRepository) getPredictionsForPhoto(
 		return nil, fmt.Errorf("query predictions: %w", err)
 	}
 
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close() // ignore close errors
+	}()
 
 	predictions := []models.Prediction{}
 

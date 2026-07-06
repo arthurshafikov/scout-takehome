@@ -51,7 +51,7 @@ func (s *MinIOStorageService) GenerateUploadLink(
 ) (*UploadLink, error) {
 	objectName := fmt.Sprintf("originals/%s", photoID)
 	expiresAt := time.Now().Add(15 * time.Minute)
-	duration := expiresAt.Sub(time.Now())
+	duration := time.Until(expiresAt)
 
 	presignedURL, err := s.client.PresignedPutObject(ctx, s.bucket, objectName, duration)
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *MinIOStorageService) GenerateUploadLink(
 func (s *MinIOStorageService) GetOriginalURL(ctx context.Context, photoID string) (string, error) {
 	objectName := fmt.Sprintf("originals/%s", photoID)
 	expiresAt := time.Now().Add(1 * time.Hour)
-	duration := expiresAt.Sub(time.Now())
+	duration := time.Until(expiresAt)
 
 	presignedURL, err := s.client.PresignedGetObject(ctx, s.bucket, objectName, duration, nil)
 	if err != nil {
