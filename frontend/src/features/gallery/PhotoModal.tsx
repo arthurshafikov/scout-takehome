@@ -1,6 +1,7 @@
-import { FC, useState } from 'react'
+import { FC, useState, useEffect } from 'react'
 import BBoxOverlay from './BBoxOverlay'
-import { getThumbnailUrl, getThumbnailSrcSet, MODAL_SIZES } from '@/utils/thumbnail'
+import { getThumbnailUrl } from '@/utils/thumbnail'
+import { loadImageWithAuth } from '@/utils/imageLoader'
 import { PEST_CLASS_LABELS, PEST_CLASS_COLORS } from '@/utils/classColors'
 import type { Photo } from '@/types/api'
 
@@ -13,10 +14,35 @@ interface PhotoModalProps {
 /**
  * Full-screen modal viewer showing photo with bbox overlays
  * Displays predictions sorted by confidence with detailed info
- * Responsive image: uses srcset/sizes for high-quality display at any resolution
+ * Loads high-quality image with API key authentication
  */
 const PhotoModal: FC<PhotoModalProps> = ({ photo, isOpen, onClose }) => {
   const [showOverlay, setShowOverlay] = useState(true)
+  const [imageSrc, setImageSrc] = useState<string>('')
+  const [imageLoading, setImageLoading] = useState(true)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const apiKey = import.meta.env.VITE_API_KEY
+    if (!apiKey) {
+      console.warn('Missing VITE_API_KEY environment variable')
+      setImageLoading(false)
+      return
+    }
+
+    const imageUrl = getThumbnailUrl(photo.id, 900, 90)
+
+    loadImageWithAuth(imageUrl, apiKey)
+      .then((blobUrl) => {
+        setImageSrc(blobUrl)
+        setImageLoading(false)
+      })
+      .catch((error) => {
+        console.error(`Failed to load image for photo ${photo.id}:`, error)
+        setImageLoading(false)
+      })
+  }, [photo.id, isOpen])
 
   if (!isOpen) return null
 
@@ -39,10 +65,13 @@ const PhotoModal: FC<PhotoModalProps> = ({ photo, isOpen, onClose }) => {
           {/* Image section */}
           <div className="flex-1 flex items-center justify-center bg-black min-h-96">
             <div className="relative w-full h-full flex items-center justify-center">
+              {imageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-12 h-12 border-4 border-gray-600 border-t-blue-400 rounded-full animate-spin" />
+                </div>
+              )}
               <img
-                srcSet={getThumbnailSrcSet(photo.id, 90)}
-                sizes={MODAL_SIZES}
-                src={getThumbnailUrl(photo.id, 900, 90)}
+                src={imageSrc}
                 alt={`Photo ${photo.id}`}
                 className="max-w-full max-h-full object-contain"
               />

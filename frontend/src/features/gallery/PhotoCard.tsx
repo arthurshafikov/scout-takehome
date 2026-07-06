@@ -1,5 +1,6 @@
-import { FC } from 'react'
-import { getThumbnailUrl, getThumbnailSrcSet, GALLERY_SIZES } from '@/utils/thumbnail'
+import { FC, useEffect, useState } from 'react'
+import { getThumbnailUrl } from '@/utils/thumbnail'
+import { loadImageWithAuth } from '@/utils/imageLoader'
 import { PEST_CLASS_LABELS } from '@/utils/classColors'
 import type { Photo } from '@/types/api'
 
@@ -10,9 +11,33 @@ interface PhotoCardProps {
 
 /**
  * Grid card displaying photo thumbnail with prediction summary
- * Responsive image: uses srcset/sizes for adaptive resolution based on screen size
+ * Loads image with API key authentication via fetch instead of img srcset
  */
 const PhotoCard: FC<PhotoCardProps> = ({ photo, onClick }) => {
+  const [imageSrc, setImageSrc] = useState<string>('')
+  const [imageLoading, setImageLoading] = useState(true)
+
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_API_KEY
+    if (!apiKey) {
+      console.warn('Missing VITE_API_KEY environment variable')
+      setImageLoading(false)
+      return
+    }
+
+    const imageUrl = getThumbnailUrl(photo.id, 600)
+
+    loadImageWithAuth(imageUrl, apiKey)
+      .then((blobUrl) => {
+        setImageSrc(blobUrl)
+        setImageLoading(false)
+      })
+      .catch((error) => {
+        console.error(`Failed to load image for photo ${photo.id}:`, error)
+        setImageLoading(false)
+      })
+  }, [photo.id])
+
   const highestConfidence =
     photo.predictions.length > 0
       ? Math.max(...photo.predictions.map((p) => p.confidence))
@@ -29,13 +54,15 @@ const PhotoCard: FC<PhotoCardProps> = ({ photo, onClick }) => {
     >
       {/* Image container */}
       <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
+        {imageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+          </div>
+        )}
         <img
-          srcSet={getThumbnailSrcSet(photo.id)}
-          sizes={GALLERY_SIZES}
-          src={getThumbnailUrl(photo.id, 600)}
+          src={imageSrc}
           alt={`Photo ${photo.id}`}
           className="w-full h-full object-cover"
-          loading="lazy"
         />
 
         {/* Position indicator */}
