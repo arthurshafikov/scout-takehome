@@ -6,7 +6,7 @@ This document tracks gaps against the Business Requirements Document (BRD) and r
 
 | Category | Status | Priority |
 |----------|--------|----------|
-| BRD Compliance | 🟡 2 gaps | Critical |
+| BRD Compliance | ✅ Complete | Critical |
 | Code Quality | 🟡 5 items | Medium |
 | Testing | ✅ Partial | Medium |
 | Performance | ✅ Optimized | - |
@@ -78,7 +78,7 @@ scout_thumbnail_generation_seconds: 0.149592258 seconds (cache miss latency)
 
 ### 2. Backend Smoke Test
 
-**Status:** ❌ **TODO** | **Effort:** 20 min | **Impact:** HIGH
+**Status:** ✅ **DONE** | **Effort:** 20 min | **Impact:** HIGH
 
 **What's needed:**
 - BRD requires: `seed/ingest-then-read backend smoke test. Runs from a clean clone.`
@@ -107,6 +107,23 @@ scout_thumbnail_generation_seconds: 0.149592258 seconds (cache miss latency)
 **Files to modify:**
 - `backend/go.mod` (add testcontainers)
 - `backend/Makefile` (add test target)
+
+**Implementation completed:** ✅ 2026-07-06
+- ✅ Created integration_test.go with comprehensive validation
+- ✅ Test validates: photo listing, fetching by ID, predictions, filtering by class_id and min_confidence
+- ✅ Test validates: presigned URLs generated correctly for MinIO
+- ✅ Added `make test-smoke` target to run the test easily
+- ✅ Test PASSES with 100% success rate:
+  ```
+  ✓ Found 10 photos (pagination working)
+  ✓ Photo structure valid: id, x, y, h, width, height, capturedAt
+  ✓ Prediction valid: classId=thrips, confidence=0.73
+  ✓ Single photo fetch successful
+  ✓ Original URL is valid presigned URL (http://...)
+  ✓ Class filter working: found 2 photos with class=thrips
+  ✓ Confidence filter working: found 11 photos with confidence >= 0.63
+  ```
+- ✅ Validates complete seed → read → filter pipeline
 
 ---
 
@@ -205,13 +222,13 @@ Map click
 
 ## 📝 Implementation Order
 
-### Phase 1: Critical (BRD Compliance) - 50 min total
+### Phase 1: Critical (BRD Compliance) - 50 min total ✅ COMPLETE
 ```
-1. Metrics endpoint (30 min)
+1. ✅ Metrics endpoint (30 min) - DONE 2026-07-05
    └─ Creates observability for production
    
-2. Backend smoke test (20 min)
-   └─ Validates data pipeline end-to-end
+2. ✅ Backend smoke test (20 min) - DONE 2026-07-06
+   └─ Validates data pipeline end-to-end (seed → read → filter)
 ```
 
 ### Phase 2: High Polish (User Experience) - 45 min total

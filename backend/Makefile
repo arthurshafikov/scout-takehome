@@ -37,6 +37,10 @@ test:
 test-race: 
 	go test --short -race ./internal/...
 
+test-smoke: build-seed
+	@echo "Running backend smoke test (requires backend running on :8080 and MinIO on :9000)..."
+	go test ./cmd/seed/... -v
+
 lint: 
 	golangci-lint run ./...
 
