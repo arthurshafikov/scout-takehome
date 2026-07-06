@@ -46,81 +46,42 @@ curl http://localhost:8080/api/photos/{photo_id}
 curl http://localhost:8080/api/thumbnails/{photo_id}?w=400 -o thumb.jpg
 ```
 
-## � Setup from Scratch (New Clone)
+## 🔧 Setup from Scratch (New Clone)
 
-After cloning the repository, follow these steps to set up the application:
+Automated setup script handles everything:
 
-### 1. Clone the Repository
 ```bash
-git clone <repository-url>
-cd scout-takehome
+# After cloning
+./setup.sh
 ```
 
-### 2. Set Up Backend Environment
+This script:
+- ✓ Creates `backend/main.env` from template
+- ✓ Creates `frontend/.env` from template  
+- ✓ Validates all required files exist
+
+Then start the application:
 ```bash
-cd backend
-
-# Copy template to create your local env file
-cp main.env.example main.env
-
-# Edit main.env with your settings (defaults work for local dev)
-# nano main.env
-```
-
-Default `main.env` values (already correct for local development):
-```env
-APP_ENV=local
-APP_PORT=8080
-SQLITE_DB_PATH=../dataset/predictions.db
-MINIO_ENDPOINT=localhost:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-MINIO_BUCKET=scout
-```
-
-### 3. Set Up Frontend Environment
-```bash
-cd ../frontend
-
-# Copy template to create your local env file
-cp .env.example .env
-
-# Default is already set for local development
-# VITE_API_URL=http://localhost:8080
-```
-
-### 4. Start Everything
-```bash
-# From project root
 docker compose up
 ```
 
-Wait for all containers to be healthy (~30 seconds). You should see:
-- ✅ Backend API ready at http://localhost:8080
-- ✅ Frontend dev server ready at http://localhost:5173
-- ✅ MinIO console ready at http://localhost:9001
+**Access URLs** (after ~30 seconds):
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8080/api
+- MinIO Console: http://localhost:9001
 
-### 5. Verify Installation
+**Verify it works:**
 ```bash
-# Test backend health
 curl http://localhost:8080/api/healthz
-
-# Should return:
-# {"success": true, "data": {"status": "ok"}, "trace_id": "..."}
 ```
 
-Then open http://localhost:5173 in your browser - you should see the Scout gallery with 50 photos.
-
-### 6. (Optional) Re-seed Dataset
-If you need to upload images again:
+Optional: Re-seed dataset
 ```bash
 cd backend
 make seed
 ```
 
-This uploads all images from `dataset/images/` to MinIO.
-
-## �📊 Seed Initial Dataset
+## 📊 Seed Initial Dataset
 
 The database comes pre-seeded with 50 photos. If you need to re-seed:
 
@@ -235,4 +196,3 @@ VITE_API_URL=http://localhost:8080
 - **Backend**: [backend/README.md](backend/README.md) - Setup, API reference, deployment
 - **Frontend**: [frontend/README.md](frontend/README.md) - Architecture, phases, testing
 - **API Contract**: [openapi.yaml](openapi.yaml)
-
