@@ -9,8 +9,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
+	apierr "github.com/arthurshafikov/scout-takehome/backend/internal/core/errors"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/services/metrics"
 	"github.com/disintegration/imaging"
 	"github.com/minio/minio-go/v7"
@@ -78,6 +80,10 @@ func (tg *ThumbnailGenerator) Generate(
 	// Download original
 	original, err := tg.downloadOriginal(ctx, photoID)
 	if err != nil {
+		// Check if it's a "photo not found" error and convert to proper error type
+		if strings.Contains(err.Error(), "photo not found") {
+			return nil, apierr.ErrPhotoNotFound
+		}
 		return nil, fmt.Errorf("download original: %w", err)
 	}
 
@@ -133,6 +139,10 @@ func (tg *ThumbnailGenerator) downloadOriginal(ctx context.Context, photoID stri
 
 	obj, err := tg.client.GetObject(ctx, tg.bucket, objectName, minio.GetObjectOptions{})
 	if err != nil {
+		errResp := minio.ToErrorResponse(err)
+		if errResp.Code == "NoSuchKey" {
+			return nil, fmt.Errorf("photo not found")
+		}
 		return nil, fmt.Errorf("get object: %w", err)
 	}
 	defer func() {
@@ -142,6 +152,10 @@ func (tg *ThumbnailGenerator) downloadOriginal(ctx context.Context, photoID stri
 	buf := &bytes.Buffer{}
 	_, err = buf.ReadFrom(obj)
 	if err != nil {
+		errResp := minio.ToErrorResponse(err)
+		if errResp.Code == "NoSuchKey" {
+			return nil, fmt.Errorf("photo not found")
+		}
 		return nil, fmt.Errorf("read object: %w", err)
 	}
 
