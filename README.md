@@ -46,7 +46,81 @@ curl http://localhost:8080/api/photos/{photo_id}
 curl http://localhost:8080/api/thumbnails/{photo_id}?w=400 -o thumb.jpg
 ```
 
-## 📊 Seed Initial Dataset
+## � Setup from Scratch (New Clone)
+
+After cloning the repository, follow these steps to set up the application:
+
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd scout-takehome
+```
+
+### 2. Set Up Backend Environment
+```bash
+cd backend
+
+# Copy template to create your local env file
+cp main.env.example main.env
+
+# Edit main.env with your settings (defaults work for local dev)
+# nano main.env
+```
+
+Default `main.env` values (already correct for local development):
+```env
+APP_ENV=local
+APP_PORT=8080
+SQLITE_DB_PATH=../dataset/predictions.db
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=scout
+```
+
+### 3. Set Up Frontend Environment
+```bash
+cd ../frontend
+
+# Copy template to create your local env file
+cp .env.example .env
+
+# Default is already set for local development
+# VITE_API_URL=http://localhost:8080
+```
+
+### 4. Start Everything
+```bash
+# From project root
+docker compose up
+```
+
+Wait for all containers to be healthy (~30 seconds). You should see:
+- ✅ Backend API ready at http://localhost:8080
+- ✅ Frontend dev server ready at http://localhost:5173
+- ✅ MinIO console ready at http://localhost:9001
+
+### 5. Verify Installation
+```bash
+# Test backend health
+curl http://localhost:8080/api/healthz
+
+# Should return:
+# {"success": true, "data": {"status": "ok"}, "trace_id": "..."}
+```
+
+Then open http://localhost:5173 in your browser - you should see the Scout gallery with 50 photos.
+
+### 6. (Optional) Re-seed Dataset
+If you need to upload images again:
+```bash
+cd backend
+make seed
+```
+
+This uploads all images from `dataset/images/` to MinIO.
+
+## �📊 Seed Initial Dataset
 
 The database comes pre-seeded with 50 photos. If you need to re-seed:
 
@@ -162,47 +236,3 @@ VITE_API_URL=http://localhost:8080
 - **Frontend**: [frontend/README.md](frontend/README.md) - Architecture, phases, testing
 - **API Contract**: [openapi.yaml](openapi.yaml)
 
-## 📁 Project Structure
-
-```
-scout-takehome/
-├── backend/              Go API server
-│   ├── cmd/app/          Entry point
-│   ├── internal/         Core logic (models, repo, services, handlers)
-│   ├── configs/          Configuration templates
-│   ├── deployments/      Docker Compose
-│   └── README.md         Full backend guide
-├── frontend/             React web app
-│   ├── src/
-│   │   ├── features/     Gallery, filters, map
-│   │   ├── services/     RTK Query API
-│   │   ├── app/          Redux store
-│   │   └── utils/        Helpers & constants
-│   └── README.md         Full frontend guide
-├── dataset/
-│   ├── images/           50 sample photos
-│   └── predictions.db    SQLite database
-├── docker-compose.yml    Local dev environment
-└── openapi.yaml          API specification
-```
-
-## 🔑 Key Features
-
-- **Cursor Pagination**: Efficient scrolling through large photo datasets
-- **Bounding Box Overlay**: SVG rendering with normalized [0,1] coordinates
-- **Greenhouse Map**: Interactive Konva.js canvas showing photo positions
-- **Smart Filtering**: By pest class and confidence threshold
-- **Presigned URLs**: Secure photo uploads/downloads to MinIO
-- **Thumbnail Caching**: On-demand generation with 24h cache (1-3ms hits vs 150ms generation)
-- **Prometheus Metrics**: Production-ready observability
-- **Error Boundaries**: React error catching prevents full app crash
-
-## 🚢 Deployment
-
-For production deployment, see detailed guides:
-- Backend: [backend/README.md](backend/README.md#production-deployment-checklist)
-- Frontend: [frontend/README.md](frontend/README.md#build--deployment)
-
-## 📝 License
-
-Proprietary - Scout Takehome Project
