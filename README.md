@@ -28,21 +28,17 @@ This script:
 ### Step 2: Start Services
 
 ```bash
-docker compose up
+docker compose up --wait
 ```
 
-Wait for containers to be healthy (~30 seconds):
-- Backend: `scout-backend` (healthy)
-- Frontend: `scout-frontend` (healthy)  
-- MinIO: `scout-minio` (running)
+The `--wait` flag automatically waits for all services to become healthy before returning.
 
 ### Step 3: Seed Initial Dataset (REQUIRED)
 
 After services are healthy, seed the database with 50 sample photos:
 
 ```bash
-cd backend
-make seed
+cd backend && make seed && cd ../
 ```
 
 This uploads images from `dataset/images/` to MinIO and creates database records. Without this step, the gallery will be empty.
