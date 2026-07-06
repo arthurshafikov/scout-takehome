@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import {
   setSelectedClass,
   setMinConfidence,
+  setLocationCenter,
   resetFilters,
 } from '@/features/filters/filtersSlice'
 import { PEST_CLASSES } from '@/types/api'
@@ -14,7 +15,7 @@ import { PEST_CLASS_LABELS } from '@/utils/classColors'
  */
 const FilterPanel: FC = () => {
   const dispatch = useAppDispatch()
-  const { selectedClass, minConfidence } = useAppSelector(
+  const { selectedClass, minConfidence, locationCenter } = useAppSelector(
     (state) => state.filters,
   )
 
@@ -84,7 +85,7 @@ const FilterPanel: FC = () => {
         {/* Reset button */}
         <button
           onClick={handleReset}
-          disabled={!selectedClass && minConfidence === 0}
+          disabled={!selectedClass && minConfidence === 0 && !locationCenter}
           className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
         >
           Reset Filters
@@ -92,7 +93,7 @@ const FilterPanel: FC = () => {
       </div>
 
       {/* Active filters display */}
-      {(selectedClass || minConfidence > 0) && (
+      {(selectedClass || minConfidence > 0 || locationCenter) && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="text-sm text-gray-600">
             <strong>Active filters:</strong>
@@ -106,6 +107,20 @@ const FilterPanel: FC = () => {
                 <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs">
                   Confidence ≥ {(minConfidence * 100).toFixed(0)}%
                 </span>
+              )}
+              {locationCenter && (
+                <div className="flex items-center gap-2">
+                  <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs">
+                    Location ({locationCenter.x.toFixed(1)}m, {locationCenter.y.toFixed(1)}m)
+                  </span>
+                  <button
+                    onClick={() => dispatch(setLocationCenter(null))}
+                    className="inline-block text-blue-600 hover:text-blue-800 text-xs font-semibold"
+                    title="Clear location filter"
+                  >
+                    ✕
+                  </button>
+                </div>
               )}
             </div>
           </div>

@@ -1,7 +1,10 @@
 import { FC, useRef, useState } from 'react'
 import { Stage, Layer, Circle, Text, Rect, Line } from 'react-konva'
 import type Konva from 'konva'
+import { useDispatch, useSelector } from 'react-redux'
 import { useListPhotosQuery } from '@/services/api'
+import { setLocationCenter } from '@/features/filters/filtersSlice'
+import type { RootState } from '@/store'
 import { PEST_CLASS_RGB, PEST_CLASS_LABELS } from '@/utils/classColors'
 import type { Photo, Prediction } from '@/types/api'
 
@@ -12,6 +15,8 @@ import type { Photo, Prediction } from '@/types/api'
  */
 const MapPanel: FC = () => {
   const stageRef = useRef<Konva.Stage>(null)
+  const dispatch = useDispatch()
+  const locationCenter = useSelector((state: RootState) => state.filters.locationCenter)
   const [hoveredPhoto, setHoveredPhoto] = useState<Photo | null>(null)
   const [scale, setScale] = useState(1)
 
@@ -31,6 +36,7 @@ const MapPanel: FC = () => {
   const GREENHOUSE_WIDTH = 40
   const GREENHOUSE_HEIGHT = 40
   const PIXEL_SCALE = 40 // pixels per meter
+  const PROXIMITY_RADIUS = 5 // meters
 
   // Get highest confidence prediction for a photo
   const getTopPrediction = (photo: Photo): Prediction | null => {
@@ -63,6 +69,38 @@ const MapPanel: FC = () => {
     })
   }
 
+  // Handle click on map to filter by proximity
+  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // Only handle clicks on the stage background, not on photo circles
+    if (e.target !== stageRef.current) {
+      return
+    }
+
+    const stage = stageRef.current
+    if (!stage) return
+
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+
+    // Convert pixel coordinates to greenhouse meters
+    // Divide by PIXEL_SCALE and by current scale to account for zoom
+    const x = pointer.x / PIXEL_SCALE / scale
+    const y = pointer.y / PIXEL_SCALE / scale
+
+    // Clamp to greenhouse bounds
+    const clampedX = Math.max(0, Math.min(x, GREENHOUSE_WIDTH))
+    const clampedY = Math.max(0, Math.min(y, GREENHOUSE_HEIGHT))
+
+    // Set location center for proximity filter
+    dispatch(
+      setLocationCenter({
+        x: clampedX,
+        y: clampedY,
+        radius: PROXIMITY_RADIUS,
+      }),
+    )
+  }
+
   const width = GREENHOUSE_WIDTH * PIXEL_SCALE
   const height = GREENHOUSE_HEIGHT * PIXEL_SCALE
 
@@ -83,7 +121,8 @@ const MapPanel: FC = () => {
           Greenhouse Map
         </h2>
         <p className="text-sm text-gray-600">
-          {photos.length} photos • Scroll to zoom • Drag to pan
+          {photos.length} photos • Click to filter by location • Scroll to zoom • Drag to pan
+          {locationCenter && ` • Location filter active (${locationCenter.radius}m radius)`}
         </p>
       </div>
 
@@ -94,6 +133,7 @@ const MapPanel: FC = () => {
           width={Math.min(800, window.innerWidth - 64)}
           height={400}
           onWheel={handleWheel}
+          onClick={handleStageClick}
           draggable
           scaleX={scale}
           scaleY={scale}
@@ -141,6 +181,28 @@ const MapPanel: FC = () => {
                 </g>
               )
             })}
+
+            {/* Proximity circle (if location is selected) */}
+            {locationCenter && (
+              <>
+                <Circle
+                  x={locationCenter.x * PIXEL_SCALE}
+                  y={locationCenter.y * PIXEL_SCALE}
+                  radius={locationCenter.radius * PIXEL_SCALE}
+                  fill="rgba(59, 130, 246, 0.1)"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                />
+                <Circle
+                  x={locationCenter.x * PIXEL_SCALE}
+                  y={locationCenter.y * PIXEL_SCALE}
+                  radius={6}
+                  fill="#3b82f6"
+                  stroke="#fff"
+                  strokeWidth={2}
+                />
+              </>
+            )}
 
             {/* Photo points */}
             {photos.map((photo) => {

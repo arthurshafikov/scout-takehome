@@ -23,15 +23,15 @@ type PhotoPage struct {
 
 // Photo mirrors the model structure
 type Photo struct {
-	ID          string        `json:"id"`
-	X           float64       `json:"x"`
-	Y           float64       `json:"y"`
-	H           float64       `json:"h"`
-	Width       int           `json:"width"`
-	Height      int           `json:"height"`
-	CapturedAt  time.Time     `json:"capturedAt"`
-	OriginalURL string        `json:"originalUrl,omitempty"`
-	Predictions []Prediction  `json:"predictions"`
+	ID          string       `json:"id"`
+	X           float64      `json:"x"`
+	Y           float64      `json:"y"`
+	H           float64      `json:"h"`
+	Width       int          `json:"width"`
+	Height      int          `json:"height"`
+	CapturedAt  time.Time    `json:"capturedAt"`
+	OriginalURL string       `json:"originalUrl,omitempty"`
+	Predictions []Prediction `json:"predictions"`
 }
 
 // Prediction mirrors the model structure
@@ -282,8 +282,8 @@ func getPhoto(ctx context.Context, photoID string) (*Photo, error) {
 
 	// Response is wrapped in APIResponse
 	var wrapper struct {
-		Success bool   `json:"success"`
-		Data    *Photo `json:"data"`
+		Success bool        `json:"success"`
+		Data    *Photo      `json:"data"`
 		Error   interface{} `json:"error,omitempty"`
 	}
 

@@ -129,7 +129,7 @@ scout_thumbnail_generation_seconds: 0.149592258 seconds (cache miss latency)
 
 ### 3. Map Click-to-Filter (Bonus - High Polish)
 
-**Status:** ❌ **TODO** | **Effort:** 45 min | **Impact:** MEDIUM
+**Status:** ✅ **DONE** | **Effort:** 45 min | **Impact:** MEDIUM
 
 **What's needed:**
 - BRD bonus: "Click a spot to filter the gallery to photos near it"
@@ -164,6 +164,38 @@ Map click
 - `frontend/src/features/filters/filtersSlice.ts` (add locationCenter state)
 - `frontend/src/features/gallery/GalleryPage.tsx` (apply location filter)
 - `frontend/src/features/filters/FilterPanel.tsx` (show active location filter)
+
+**Implementation completed:** ✅ 2026-07-06
+- ✅ Added LocationCenter interface to filtersSlice with x, y, radius fields
+- ✅ Added setLocationCenter action and reducer to Redux
+- ✅ Added click handler to MapPanel Stage that:
+  - Detects clicks on map background (not photo circles)
+  - Converts pixel coordinates to greenhouse meters accounting for zoom level
+  - Clamps coordinates to greenhouse bounds (0-40m)
+  - Dispatches setLocationCenter with 5m radius
+- ✅ Added visual indicators in MapPanel:
+  - Blue circle showing selected location
+  - Blue dot at click center
+  - Dynamic help text: "Click to filter by location"
+  - Shows active location radius in title
+- ✅ Implemented proximity filtering in GalleryPage:
+  - calculateDistance() function using Pythagorean theorem
+  - applyLocationFilter() to find photos within radius
+  - Seamlessly integrates with class and confidence filters
+- ✅ Updated FilterPanel to display location filter:
+  - Shows location coordinates (e.g., "Location (20.5m, 15.3m)")
+  - Quick clear button (✕) to remove location filter
+  - Integrated with "Reset Filters" button
+- ✅ Works alongside existing class_id and min_confidence filters
+- ✅ Results update instantly when clicking map
+
+**Feature workflow:**
+1. User sees map with all 200 photos
+2. User clicks any location on the map → blue circle appears
+3. Gallery automatically updates to show only nearby photos (within 5m)
+4. FilterPanel displays active location filter
+5. User can click X to clear location filter
+6. Gallery reverts to showing all photos (respecting class/confidence filters)
 
 ---
 
@@ -231,10 +263,10 @@ Map click
    └─ Validates data pipeline end-to-end (seed → read → filter)
 ```
 
-### Phase 2: High Polish (User Experience) - 45 min total
+### Phase 2: High Polish (User Experience) - 45 min total ✅ COMPLETE
 ```
-3. Map click-to-filter (45 min)
-   └─ Improves usability significantly
+3. ✅ Map click-to-filter (45 min) - DONE 2026-07-06
+   └─ Click map → filter gallery by proximity (5m radius)
 ```
 
 ### Phase 3: Code Quality - 60 min total

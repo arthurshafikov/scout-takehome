@@ -17,7 +17,7 @@ const GalleryPage: FC = () => {
   const observerTarget = useRef<HTMLDivElement>(null)
 
   const dispatch = useAppDispatch()
-  const { selectedClass, minConfidence, cursor } = useAppSelector(
+  const { selectedClass, minConfidence, cursor, locationCenter } = useAppSelector(
     (state) => state.filters,
   )
 
@@ -66,6 +66,26 @@ const GalleryPage: FC = () => {
     setTimeout(() => setSelectedPhoto(null), 300)
   }, [])
 
+  // Calculate distance between two points (meters)
+  const calculateDistance = (x1: number, y1: number, x2: number, y2: number): number => {
+    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+  }
+
+  // Filter photos by location proximity
+  const applyLocationFilter = (photosToFilter: Photo[]): Photo[] => {
+    if (!locationCenter) return photosToFilter
+
+    return photosToFilter.filter((photo) => {
+      const distance = calculateDistance(
+        locationCenter.x,
+        locationCenter.y,
+        photo.x,
+        photo.y,
+      )
+      return distance <= locationCenter.radius
+    })
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -74,7 +94,7 @@ const GalleryPage: FC = () => {
     )
   }
 
-  const photos = data?.items || []
+  const photos = applyLocationFilter(data?.items || [])
 
   return (
     <>
