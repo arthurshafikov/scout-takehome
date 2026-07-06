@@ -32,11 +32,11 @@ type SQLiteConfig struct {
 }
 
 type MinIOConfig struct {
-	Endpoint   string `mapstructure:"MINIO_ENDPOINT"`
-	AccessKey  string `mapstructure:"MINIO_ACCESS_KEY"`
-	SecretKey  string `mapstructure:"MINIO_SECRET_KEY"`
-	Bucket     string `mapstructure:"MINIO_BUCKET"`
-	UseSSL     bool   `mapstructure:"MINIO_USE_SSL"`
+	Endpoint  string `mapstructure:"MINIO_ENDPOINT"`
+	AccessKey string `mapstructure:"MINIO_ACCESS_KEY"`
+	SecretKey string `mapstructure:"MINIO_SECRET_KEY"`
+	Bucket    string `mapstructure:"MINIO_BUCKET"`
+	UseSSL    bool   `mapstructure:"MINIO_USE_SSL"`
 }
 
 type APIKeyConfig struct {

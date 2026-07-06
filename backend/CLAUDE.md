@@ -107,7 +107,7 @@ The handler layer must be as simple as possible:
 
 ### HTTP Framework
 
-- Use **fasthttp** for the HTTP server (not Gin)
+- Use Gin for the HTTP server
 - Handler functions receive `*fasthttp.RequestCtx`
 - Middleware: correlation ID, API key auth, structured logging
 
@@ -257,7 +257,6 @@ docker compose run --rm seed  # Run seed client
 ## Notes for Future Implementation
 
 - **Do not add PostgreSQL/GORM back** — SQLite is read-only for predictions, MinIO handles originals
-- **fasthttp is required** per CLAUDE.md rules — stick to it
 - All error responses must include `request_id` (from correlation ID middleware)
 - Thumbnail generation is the expensive operation — cache aggressively
 - BBox coordinate transformation is critical: test at multiple sizes/DPRs
