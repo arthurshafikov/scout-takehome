@@ -30,7 +30,7 @@ const MapPanel: FC = () => {
   const dispatch = useDispatch()
   const locationCenter = useSelector((state: RootState) => state.filters.locationCenter)
   const [hoveredPhoto, setHoveredPhoto] = useState<Photo | null>(null)
-  const [scale, setScale] = useState(1)
+  const [scale, setScale] = useState(0.5) // Default zoom out to fit entire map
 
   // Fetch photos for map (independent cache, up to MAP_FETCH_LIMIT)
   const { data: mapData, isLoading } = useListPhotosQuery(
@@ -178,7 +178,7 @@ const MapPanel: FC = () => {
             />
 
             {/* Grid lines */}
-            {[...Array(5)].map((_, i) => {
+            {Array.from({ length: 5 }).map((_, i) => {
               const pos = (i + 1) * (width / 5)
               return (
                 <g key={`grid-${i}`}>
@@ -264,7 +264,7 @@ const MapPanel: FC = () => {
                 <div className="font-medium text-gray-700 mb-1">
                   Top predictions:
                 </div>
-                {hoveredPhoto.predictions
+                {[...hoveredPhoto.predictions]
                   .sort((a, b) => b.confidence - a.confidence)
                   .slice(0, 3)
                   .map((pred) => (

@@ -21,7 +21,7 @@ docker compose up
 
 ### Access the App
 - **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8080/api
+- **Backend API**: http://localhost:8080/api/thumbnails/{photoId}?w=600&q=85
 - **MinIO Console**: http://localhost:9001 (minioadmin / minioadmin)
 - **Prometheus Metrics**: http://localhost:8080/metrics
 
