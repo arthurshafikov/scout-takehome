@@ -11,7 +11,9 @@ A complete platform for greenhouse pest/disease monitoring with real-time photo 
 
 ## 🔧 Setup from Scratch (New Clone)
 
-Automated setup script handles everything:
+### Step 1: Configure Environment
+
+Run the automated setup script:
 
 ```bash
 # After cloning
@@ -23,26 +25,41 @@ This script:
 - ✓ Creates `frontend/.env` from template  
 - ✓ Validates all required files exist
 
-Then start the application:
+### Step 2: Start Services
+
 ```bash
 docker compose up
 ```
 
-**Access URLs** (after ~30 seconds):
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8080/api
-- MinIO Console: http://localhost:9001
+Wait for containers to be healthy (~30 seconds):
+- Backend: `scout-backend` (healthy)
+- Frontend: `scout-frontend` (healthy)  
+- MinIO: `scout-minio` (running)
 
-**Verify it works:**
-```bash
-curl http://localhost:8080/api/healthz
-```
+### Step 3: Seed Initial Dataset (REQUIRED)
 
-Optional: Re-seed dataset
+After services are healthy, seed the database with 50 sample photos:
+
 ```bash
 cd backend
 make seed
 ```
+
+This uploads images from `dataset/images/` to MinIO and creates database records. Without this step, the gallery will be empty.
+
+### Step 4: Access the Application
+
+**Access URLs**:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8080/api
+- MinIO Console: http://localhost:9001 (credentials: `minioadmin` / `minioadmin`)
+
+**Verify it works:**
+```bash
+curl -H 'X-API-Key: scout-api-key-12345' http://localhost:8080/photos
+```
+
+You should see a JSON response with photo data.
 
 ## 📊 Seed Initial Dataset
 

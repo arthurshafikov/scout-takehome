@@ -5,6 +5,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Accept build arguments
+ARG VITE_API_KEY=scout-api-key-12345
+
 # Copy package files
 COPY package*.json ./
 
@@ -14,8 +17,8 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build for production
-RUN npm run build
+# Build for production with environment variable
+RUN VITE_API_KEY=$VITE_API_KEY npm run build
 
 # Stage 2: Serve with nginx
 FROM nginx:alpine

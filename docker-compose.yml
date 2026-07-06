@@ -38,6 +38,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_KEY: scout-api-key-12345
     ports:
       - "5173:80"
     depends_on:
