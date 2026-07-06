@@ -111,7 +111,7 @@ func Run() {
 	datasetPath := filepath.Dir(config.DBPath)
 	thumbnailGen := thumbnail.NewThumbnailGenerator(minioClient, config.Bucket, datasetPath, m)
 
-	h := handler.NewHandler(ctx, svc, thumbnailGen, m)
+	h := handler.NewHandler(ctx, svc, thumbnailGen, m, config.APIKey)
 
 	server := http.NewServer(logger, h, config.Debug, m)
 
@@ -122,7 +122,7 @@ func Run() {
 			}
 		}()
 
-			return server.Serve(ctx, g, config.Port)
+		return server.Serve(ctx, g, config.Port)
 	})
 
 	if err := g.Wait(); err != nil {
