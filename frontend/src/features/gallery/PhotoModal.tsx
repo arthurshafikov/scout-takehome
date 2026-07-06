@@ -1,6 +1,6 @@
 import { FC, useState } from 'react'
 import BBoxOverlay from './BBoxOverlay'
-import { getThumbnailUrl } from '@/utils/thumbnail'
+import { getThumbnailUrl, getThumbnailSrcSet, MODAL_SIZES } from '@/utils/thumbnail'
 import { PEST_CLASS_LABELS, PEST_CLASS_COLORS } from '@/utils/classColors'
 import type { Photo } from '@/types/api'
 
@@ -13,6 +13,7 @@ interface PhotoModalProps {
 /**
  * Full-screen modal viewer showing photo with bbox overlays
  * Displays predictions sorted by confidence with detailed info
+ * Responsive image: uses srcset/sizes for high-quality display at any resolution
  */
 const PhotoModal: FC<PhotoModalProps> = ({ photo, isOpen, onClose }) => {
   const [showOverlay, setShowOverlay] = useState(true)
@@ -39,7 +40,9 @@ const PhotoModal: FC<PhotoModalProps> = ({ photo, isOpen, onClose }) => {
           <div className="flex-1 flex items-center justify-center bg-black min-h-96">
             <div className="relative w-full h-full flex items-center justify-center">
               <img
-                src={getThumbnailUrl(photo.id)}
+                srcSet={getThumbnailSrcSet(photo.id, 90)}
+                sizes={MODAL_SIZES}
+                src={getThumbnailUrl(photo.id, 900, 90)}
                 alt={`Photo ${photo.id}`}
                 className="max-w-full max-h-full object-contain"
               />

@@ -1,5 +1,5 @@
 import { FC } from 'react'
-import { getThumbnailUrl } from '@/utils/thumbnail'
+import { getThumbnailUrl, getThumbnailSrcSet, GALLERY_SIZES } from '@/utils/thumbnail'
 import { PEST_CLASS_LABELS } from '@/utils/classColors'
 import type { Photo } from '@/types/api'
 
@@ -10,6 +10,7 @@ interface PhotoCardProps {
 
 /**
  * Grid card displaying photo thumbnail with prediction summary
+ * Responsive image: uses srcset/sizes for adaptive resolution based on screen size
  */
 const PhotoCard: FC<PhotoCardProps> = ({ photo, onClick }) => {
   const highestConfidence =
@@ -29,9 +30,12 @@ const PhotoCard: FC<PhotoCardProps> = ({ photo, onClick }) => {
       {/* Image container */}
       <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
         <img
-          src={getThumbnailUrl(photo.id)}
+          srcSet={getThumbnailSrcSet(photo.id)}
+          sizes={GALLERY_SIZES}
+          src={getThumbnailUrl(photo.id, 600)}
           alt={`Photo ${photo.id}`}
           className="w-full h-full object-cover"
+          loading="lazy"
         />
 
         {/* Position indicator */}
