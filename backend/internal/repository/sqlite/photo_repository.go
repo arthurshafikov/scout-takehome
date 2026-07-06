@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	apierr "github.com/arthurshafikov/scout-takehome/backend/internal/core/errors"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/models"
 	"github.com/arthurshafikov/scout-takehome/backend/internal/core/types"
 )
@@ -38,7 +39,7 @@ func (r *SQLitePhotoRepository) GetPhotoByID(
 
 	if err := row.Scan(&photo.ID, &photo.X, &photo.Y, &photo.H, &photo.Width, &photo.Height, &capturedAt); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("photo not found: %w", err)
+			return nil, fmt.Errorf("photo not found: %w", apierr.ErrPhotoNotFound)
 		}
 
 		return nil, fmt.Errorf("query photo: %w", err)

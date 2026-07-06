@@ -67,9 +67,4 @@ restart:
 down:
 	$(DOCKER_COMPOSE) --env-file ./main.env -f ${DOCKER_COMPOSE_FILE} -p ${APP_NAME} down --volumes
 
-mocks:
-	mockgen -source=./internal/repository/repository.go -destination ./internal/repository/mocks/mock.go
-	mockgen -source=./internal/services/services.go -destination ./internal/services/mocks/mock.go
-	mockgen -source=./internal/transport/http/server.go -destination ./internal/transport/http/mocks/mock.go
-
-.PHONY: build test run lint mocks ps go up stop down restart
+.PHONY: build test run lint ps go up stop down restart

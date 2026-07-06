@@ -9,43 +9,6 @@ A complete platform for greenhouse pest/disease monitoring with real-time photo 
 **Tests**: All passing (7/7 backend smoke tests, frontend unit tests)  
 **Build**: Zero errors (golangci-lint clean)
 
-## 🚀 Quick Start (5 Minutes)
-
-### Prerequisites
-- Docker & Docker Compose only (everything runs in containers)
-
-### Start Everything
-```bash
-docker compose up
-```
-
-### Access the App
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8080/api/thumbnails/{photoId}?w=600&q=85
-- **MinIO Console**: http://localhost:9001 (minioadmin / minioadmin)
-- **Prometheus Metrics**: http://localhost:8080/metrics
-
-### Verify It Works
-```bash
-# Backend health
-curl http://localhost:8080/api/healthz
-
-# List photos (should return 10 photos with predictions)
-curl http://localhost:8080/api/photos
-
-# Filter by pest class
-curl 'http://localhost:8080/api/photos?class_id=thrips'
-
-# Filter by confidence
-curl 'http://localhost:8080/api/photos?min_confidence=0.8'
-
-# Get single photo
-curl http://localhost:8080/api/photos/{photo_id}
-
-# Get thumbnail
-curl http://localhost:8080/api/thumbnails/{photo_id}?w=400 -o thumb.jpg
-```
-
 ## 🔧 Setup from Scratch (New Clone)
 
 Automated setup script handles everything:
@@ -121,65 +84,6 @@ SQLite/MinIO Storage
 - **Styling**: Tailwind CSS 3.4
 - **Canvas**: Konva.js (greenhouse map)
 - **Tests**: Vitest + React Testing Library
-
-### Data Flow
-```
-Gallery/Map Component
-  ↓
-Redux State (filters, pagination)
-  ↓
-RTK Query (API calls with caching)
-  ↓
-Backend API
-  ↓
-SQLite + MinIO
-```
-
-## 📡 API Endpoints
-
-All endpoints under `/api/`:
-
-```
-GET  /healthz                          Health check
-GET  /photos                           List photos (cursor paginated)
-     ├─ ?cursor=...                    Pagination cursor
-     ├─ ?limit=10                      Results per page
-     ├─ ?class_id=thrips               Filter by pest class
-     └─ ?min_confidence=0.8            Min confidence (0-1)
-GET  /photos/{id}                      Get single photo
-POST /photos/{id}/upload-link          Generate upload link
-GET  /thumbnails/{id}?w=400&q=85       Get thumbnail
-GET  /metrics                          Prometheus metrics
-```
-
-**Response Format**:
-```json
-{
-  "success": true,
-  "data": { /* response payload */ },
-  "trace_id": "unique-id"
-}
-```
-
-Errors return `success: false` with typed error codes and HTTP status codes.
-
-## ⚙️ Configuration
-
-### Backend (backend/main.env)
-```env
-APP_ENV=local
-APP_PORT=8080
-SQLITE_DB_PATH=../dataset/predictions.db
-MINIO_ENDPOINT=localhost:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-MINIO_BUCKET=scout
-```
-
-### Frontend (frontend/.env)
-```env
-VITE_API_URL=http://localhost:8080
-```
 
 ## 🐛 Troubleshooting
 
