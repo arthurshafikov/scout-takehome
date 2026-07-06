@@ -57,47 +57,6 @@ curl -H 'X-API-Key: scout-api-key-12345' http://localhost:8080/photos
 
 You should see a JSON response with photo data.
 
-## 📊 Seed Initial Dataset
-
-The database comes pre-seeded with 50 photos. If you need to re-seed:
-
-```bash
-cd backend
-make seed
-```
-
-This uploads all images from `dataset/images/` to MinIO bucket `scout`.
-
-## 🏗 Architecture
-
-### Backend Stack
-- **Language**: Go 1.25.5
-- **Database**: SQLite (read-only, WAL mode)
-- **Storage**: MinIO (S3-compatible)
-- **HTTP**: Gin framework
-- **Metrics**: Prometheus (custom scout_* metrics)
-
-**Layer Design**:
-```
-HTTP Request
-  ↓
-Handler (validation, response formatting)
-  ↓
-Service (business logic)
-  ↓
-Repository (data access)
-  ↓
-SQLite/MinIO Storage
-```
-
-### Frontend Stack
-- **Framework**: React 18 + TypeScript 5.4
-- **Build Tool**: Vite 6.0
-- **State Management**: Redux Toolkit + RTK Query
-- **Styling**: Tailwind CSS 3.4
-- **Canvas**: Konva.js (greenhouse map)
-- **Tests**: Vitest + React Testing Library
-
 ## 🐛 Troubleshooting
 
 | Issue | Solution |
